@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gee Whizz! — Prototype</title>
+<title>Gee Whizz! — Prototype V0.12</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -1434,13 +1434,6 @@ const REEL_TICK_AVG_MS = (REEL_TICK_FAST_MS + REEL_TICK_SLOW_MS) / 2; // used to
 const REEL_SWEAT_EXTRA_MS = 900; // extra spin time for a "sweat" reel — builds suspense before it lands
 
 // Builds one column's DOM (viewport + 4-row strip) and returns refs to it.
-function getRestTransformPercent() {
-  // The strip holds GRID_ROWS visible rows + 1 hidden entering row. Resting
-  // position tucks that hidden row out of view, expressed as a percentage
-  // of the strip's own height (not the viewport's).
-  return -100 / (GRID_ROWS + 1);
-}
-
 function createReelColumn() {
   const viewport = document.createElement('div');
   viewport.className = 'reel-col';
@@ -1448,16 +1441,11 @@ function createReelColumn() {
 
   const strip = document.createElement('div');
   strip.className = 'reel-strip';
-  strip.style.height = `${(GRID_ROWS + 1) / GRID_ROWS * 100}%`;
-  strip.style.transform = `translateY(${getRestTransformPercent()}%)`;
 
   const rowEls = [];
-  const rowHeightPct = 100 / (GRID_ROWS + 1);
   for (let r = 0; r < GRID_ROWS + 1; r++) {
     const row = document.createElement('div');
     row.className = 'reel-row';
-    row.style.flex = `0 0 ${rowHeightPct}%`;
-    row.style.height = `${rowHeightPct}%`;
     strip.appendChild(row);
     rowEls.push(row);
   }
@@ -1467,23 +1455,63 @@ function createReelColumn() {
   // GRID_ROWS-1 lines, evenly spaced, independent of the strip underneath.
   const dividers = document.createElement('div');
   dividers.className = 'reel-dividers';
+  const dividerEls = [];
   for (let d = 1; d < GRID_ROWS; d++) {
     const line = document.createElement('div');
     line.className = 'reel-divider-line';
-    line.style.top = `${(d / GRID_ROWS) * 100}%`;
     dividers.appendChild(line);
+    dividerEls.push(line);
   }
   viewport.appendChild(dividers);
 
-  return { viewport, strip, rowEls };
+  return { viewport, strip, rowEls, dividerEls };
+}
+
+// Percentage heights on absolutely-positioned children only resolve
+// reliably when their containing block has a height the browser treats as
+// "definite" — and a height derived purely from aspect-ratio is not
+// consistently treated that way across browsers/contexts. So instead:
+// measure the column's real rendered pixel height once it's actually in
+// the DOM, then apply explicit pixel sizes to everything inside it. This
+// sidesteps that ambiguity entirely.
+function sizeReelColumn(colObj) {
+  const { viewport, strip, rowEls, dividerEls } = colObj;
+  const viewportHeight = viewport.getBoundingClientRect().height;
+  const rowHeightPx = viewportHeight / GRID_ROWS;
+  const stripHeightPx = rowHeightPx * (GRID_ROWS + 1);
+
+  strip.style.height = `${stripHeightPx}px`;
+  strip.style.transform = `translateY(-${rowHeightPx}px)`;
+
+  rowEls.forEach(row => {
+    row.style.flex = `0 0 ${rowHeightPx}px`;
+    row.style.height = `${rowHeightPx}px`;
+  });
+
+  dividerEls.forEach((line, i) => {
+    const d = i + 1; // divider index 1..GRID_ROWS-1
+    line.style.top = `${(d / GRID_ROWS) * viewportHeight}px`;
+  });
+
+  colObj.rowHeightPx = rowHeightPx;
+  return rowHeightPx;
 }
 
 function renderGrid(gridState, winTiles = new Set(), scatterTiles = new Set()) {
   gridEl.innerHTML = '';
   maybeStretchFrame();
+  const cols = [];
   for (let col = 0; col < GRID_COLS; col++) {
-    const { viewport, strip, rowEls } = createReelColumn();
-    // Rows 1-3 are the visible top/mid/bottom; row 0 sits hidden above.
+    const colObj = createReelColumn();
+    gridEl.appendChild(colObj.viewport);
+    cols.push(colObj);
+  }
+  // Size after every column is attached, so getBoundingClientRect reflects
+  // real post-layout dimensions.
+  cols.forEach(colObj => sizeReelColumn(colObj));
+
+  cols.forEach((colObj, col) => {
+    const { rowEls } = colObj;
     for (let row = 0; row < GRID_ROWS; row++) {
       const i = idx(col, row);
       rowEls[row + 1].innerHTML = symbolImgTag(gridState[i]);
@@ -1491,8 +1519,7 @@ function renderGrid(gridState, winTiles = new Set(), scatterTiles = new Set()) {
       if (scatterTiles.has(i)) rowEls[row + 1].classList.add('scatter-hit');
     }
     rowEls[0].innerHTML = symbolImgTag(gridState[idx(col, 0)]);
-    gridEl.appendChild(viewport);
-  }
+  });
 }
 
 function runReelAnimation(finalGrid, { winTiles = new Set(), scatterTiles = new Set(), onDone }) {
@@ -1535,16 +1562,28 @@ function runReelAnimation(finalGrid, { winTiles = new Set(), scatterTiles = new 
 
   const columns = [];
   for (let col = 0; col < GRID_COLS; col++) {
-    const { viewport, strip, rowEls } = createReelColumn();
+    const colObj = createReelColumn();
+    gridEl.appendChild(colObj.viewport);
+    columns.push(colObj);
+  }
+  // Size after every column is attached, so getBoundingClientRect reflects
+  // real post-layout dimensions rather than relying on percentage-height
+  // cascades through aspect-ratio.
+  columns.forEach(colObj => sizeReelColumn(colObj));
+
+  columns.forEach((colObj, col) => {
+    const { rowEls } = colObj;
     // Seed with what's currently on screen for this column, not fresh
     // randoms, so the spin visually continues rather than flashing/resetting.
     for (let row = 0; row < GRID_ROWS; row++) {
       rowEls[row + 1].innerHTML = symbolImgTag(startBoard[idx(col, row)]);
     }
     rowEls[0].innerHTML = symbolImgTag(startBoard[idx(col, 0)]);
-    gridEl.appendChild(viewport);
-    columns.push({ col, viewport, strip, rowEls, tickCount: 0, totalTicks: totalTicks[col], stopped: false });
-  }
+    colObj.col = col;
+    colObj.tickCount = 0;
+    colObj.totalTicks = totalTicks[col];
+    colObj.stopped = false;
+  });
 
   let scatterLandingsRevealed = 0;
 
@@ -1658,7 +1697,7 @@ function runReelAnimation(finalGrid, { winTiles = new Set(), scatterTiles = new 
       // rowEls[1..N], whatever N (GRID_ROWS) currently is.
       const contents = rowEls.map(r => r.innerHTML);
       strip.style.transition = 'none';
-      strip.style.transform = `translateY(${getRestTransformPercent()}%)`;
+      strip.style.transform = `translateY(-${colState.rowHeightPx}px)`;
       for (let r = 1; r < rowEls.length; r++) {
         rowEls[r].innerHTML = contents[r - 1];
       }
