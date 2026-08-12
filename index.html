@@ -3,24 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Big Spin! — v0.21</title>
+<title>The Big Spin! — v.21</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --paper: #f1e4c4;
-    --paper-panel: #e8d7ab;
-    --ink: #1c140f;
+    --paper: #050505;
+    --paper-panel: #d9d5c9;
+    --ink: #141310;
     --red: #c8352a;
     --red-dark: #8f2019;
-    --mustard: #e0a72e;
-    --mustard-bright: #f2c355;
-    --teal: #2f6459;
-    --teal-dark: #1c3d36;
-    --cream: #faf3df;
-    --tile-bg: #f8f0da;
+    --mustard: #6b6a64;
+    --mustard-bright: #e8e4d6;
+    --teal: #1c1c1c;
+    --teal-dark: #0d0d0d;
+    --cream: #eeeae0;
+    --tile-bg: #f0ede3;
     --win-glow: #f2c355;
-    --row-divider: #c9bfa8;
+    --row-divider: #b3ae9f;
+    --metal-hi: #f1eee3;
+    --metal-lo: #4a4944;
   }
 
   * { box-sizing: border-box; }
@@ -34,8 +36,7 @@
     margin: 0;
     background-color: var(--paper);
     background-image:
-      radial-gradient(rgba(28,20,15,0.06) 1.4px, transparent 1.4px);
-    background-size: 14px 14px;
+      radial-gradient(ellipse at 50% -10%, rgba(255,255,255,0.05), transparent 55%);
     font-family: 'Space Grotesk', sans-serif;
     color: var(--ink);
     display: flex;
@@ -58,8 +59,62 @@
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     flex: 0 0 auto;
+  }
+
+  .pill-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(180deg, #2c2b28, #131211);
+    border: 2px solid #060605;
+    border-radius: 999px;
+    padding: 7px 14px 7px 10px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+    cursor: default;
+    flex: 0 0 auto;
+  }
+
+  button.pill-badge {
+    cursor: pointer;
+    font: inherit;
+  }
+  button.pill-badge:active {
+    transform: translateY(1px);
+  }
+
+  .pill-badge .pill-icon {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    flex: 0 0 auto;
+  }
+
+  .pill-badge .pill-icon.trophy {
+    font-size: 18px;
+    width: auto;
+    height: auto;
+  }
+
+  .pill-badge .pill-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+  }
+
+  .pill-badge .pill-label {
+    font-size: 8px;
+    letter-spacing: 1.5px;
+    color: #9a978c;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .pill-badge .pill-value {
+    font-family: 'Luckiest Guy', cursive;
+    font-size: 15px;
+    color: var(--metal-hi);
   }
 
   button.icon-btn {
@@ -84,23 +139,74 @@
     box-shadow: 1px 1px 0 var(--ink);
   }
 
-  .top-bar .mini-title {
-    font-family: 'Luckiest Guy', cursive;
-    font-size: clamp(15px, 5vw, 20px);
-    color: var(--red);
-    -webkit-text-stroke: 1px var(--ink);
-    text-shadow: 2px 2px 0 var(--ink);
-    text-align: center;
-    flex: 1 1 auto;
-    letter-spacing: 0.5px;
+  .header-emblem {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 6px;
+    flex: 0 0 auto;
   }
 
-  .top-bar .mini-title span {
+  .header-emblem img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    filter: grayscale(1) contrast(1.15) drop-shadow(0 4px 8px rgba(0,0,0,0.6));
+  }
+
+  .streak-strip {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+    margin-bottom: 8px;
+    flex: 0 0 auto;
+  }
+
+  .streak-light {
+    flex: 1 1 0;
+    max-width: 52px;
+    height: 14px;
+    border-radius: 4px;
+    background: #161512;
+    border: 1px solid #050504;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.8);
+    transition: background 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .streak-light.lit {
+    background: var(--win-glow);
+    box-shadow: 0 0 8px 2px rgba(242,195,85,0.7), inset 0 1px 2px rgba(255,255,255,0.4);
+  }
+
+  .mini-title {
+    font-family: 'Luckiest Guy', cursive;
+    font-size: clamp(15px, 5vw, 20px);
+    color: var(--metal-hi);
+    text-align: center;
+    letter-spacing: 1px;
+    flex: 0 0 auto;
+    margin-bottom: 8px;
+    padding: 6px 10px;
+    background: linear-gradient(180deg, #0d0d0c, #050504);
+    border: 2px solid #000;
+    border-radius: 8px;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.8);
+    position: relative;
+  }
+
+  .mini-title::before, .mini-title::after {
+    content: '✦';
+    color: var(--metal-hi);
+    font-size: 11px;
+    margin: 0 8px;
+    opacity: 0.7;
+  }
+
+  .mini-title span {
     display: inline-block;
     animation: wobble 2.4s ease-in-out infinite;
   }
-  .top-bar .mini-title span:nth-child(odd) { animation-delay: 0.15s; }
-  .top-bar .mini-title span:nth-child(3n) { animation-delay: 0.3s; }
+  .mini-title span:nth-child(odd) { animation-delay: 0.15s; }
+  .mini-title span:nth-child(3n) { animation-delay: 0.3s; }
 
   @keyframes wobble {
     0%, 100% { transform: translateY(0) rotate(0deg); }
@@ -108,11 +214,11 @@
   }
 
   .frame {
-    background: var(--mustard);
-    border: 4px solid var(--ink);
+    background: linear-gradient(160deg, #7a7972 0%, #3f3e3a 18%, #55534c 32%, #2a2925 55%, #4a4944 72%, #201f1c 100%);
+    border: 3px solid #0a0a0a;
     border-radius: 26px;
     padding: 12px;
-    box-shadow: 6px 6px 0 var(--ink);
+    box-shadow: 0 14px 34px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -2px 6px rgba(0,0,0,0.5);
     position: relative;
     flex: 1 1 auto;
     min-height: 0;
@@ -144,11 +250,11 @@
   }
 
   .screen {
-    background: var(--teal);
-    border: 3px solid var(--ink);
+    background: linear-gradient(180deg, #141312, #0a0a09);
+    border: 3px solid #050504;
     border-radius: 16px;
     padding: 14px;
-    box-shadow: inset 0 0 0 2px rgba(250,243,223,0.15);
+    box-shadow: inset 0 4px 14px rgba(0,0,0,0.75), inset 0 0 0 1px rgba(255,255,255,0.06);
     flex: 1 1 auto;
     min-height: 0;
     display: flex;
@@ -166,20 +272,20 @@
   }
 
   .stat {
-    background: var(--cream);
-    border: 3px solid var(--ink);
+    background: linear-gradient(180deg, #141310, #0a0a08);
+    border: 2px solid #050504;
     border-radius: 10px;
     padding: 5px 8px;
     flex: 1;
     min-width: 0;
     text-align: center;
-    box-shadow: 3px 3px 0 var(--ink);
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.7);
   }
 
   .stat .label {
     font-size: 9px;
     letter-spacing: 1px;
-    color: var(--red-dark);
+    color: #9a978c;
     text-transform: uppercase;
     font-weight: 700;
     white-space: nowrap;
@@ -188,8 +294,12 @@
   .stat .value {
     font-family: 'Luckiest Guy', cursive;
     font-size: 16px;
-    color: var(--ink);
+    color: var(--metal-hi);
     margin-top: 1px;
+  }
+
+  .symbol-img {
+    filter: grayscale(1) contrast(1.2);
   }
 
   .quota-bar-wrap {
@@ -381,24 +491,173 @@
     font-family: 'Luckiest Guy', cursive;
     font-size: 18px;
     letter-spacing: 1px;
-    background: var(--red);
-    color: var(--cream);
-    border: 3px solid var(--ink);
+    background:
+      radial-gradient(circle at 35% 30%, #8a887f, #4c4b46 55%, #232220 100%);
+    color: var(--metal-hi);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    border: 3px solid #050504;
     border-radius: 999px;
     padding: 16px 44px;
     cursor: pointer;
-    box-shadow: 4px 4px 0 var(--ink);
+    box-shadow: 0 6px 0 #050504, 0 10px 18px rgba(0,0,0,0.6), inset 0 2px 3px rgba(255,255,255,0.25);
     transition: transform 0.08s ease, box-shadow 0.08s ease;
   }
 
   button.spin-btn:active {
-    transform: translate(4px, 4px);
-    box-shadow: 0 0 0 var(--ink);
+    transform: translate(0, 4px);
+    box-shadow: 0 2px 0 #050504, 0 4px 10px rgba(0,0,0,0.6), inset 0 2px 3px rgba(255,255,255,0.25);
   }
 
   button.spin-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  button.auto-spin-btn {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.3;
+    background: linear-gradient(180deg, #3a3934, #181715);
+    color: var(--metal-hi);
+    border: 2px solid #050504;
+    border-radius: 12px;
+    padding: 10px 12px;
+    cursor: pointer;
+    box-shadow: 3px 3px 0 #050504, inset 0 1px 0 rgba(255,255,255,0.1);
+    flex: 0 0 auto;
+  }
+
+  button.auto-spin-btn.active {
+    background: linear-gradient(180deg, var(--red), var(--red-dark));
+    box-shadow: 3px 3px 0 #050504, 0 0 10px rgba(200,53,42,0.6), inset 0 1px 0 rgba(255,255,255,0.15);
+  }
+
+  button.auto-spin-btn:active {
+    transform: translate(2px, 2px);
+  }
+
+  .bottom-controls-row {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+    justify-content: center;
+    margin-bottom: 10px;
+    flex: 0 0 auto;
+  }
+
+  button.mini-ctrl-btn {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.3;
+    background: linear-gradient(180deg, #3a3934, #181715);
+    color: var(--metal-hi);
+    border: 2px solid #050504;
+    border-radius: 10px;
+    padding: 8px 10px;
+    cursor: pointer;
+    box-shadow: 2px 2px 0 #050504, inset 0 1px 0 rgba(255,255,255,0.1);
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  button.mini-ctrl-btn:active {
+    transform: translate(1px, 1px);
+  }
+
+  button.mini-ctrl-btn.muted {
+    opacity: 0.55;
+  }
+
+  .mini-ctrl-display {
+    flex: 1 1 0;
+    min-width: 0;
+    background: linear-gradient(180deg, #141310, #0a0a08);
+    border: 2px solid #050504;
+    border-radius: 10px;
+    padding: 6px 8px;
+    text-align: center;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.7);
+  }
+
+  .mini-ctrl-label {
+    font-size: 8px;
+    letter-spacing: 1px;
+    color: #9a978c;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .mini-ctrl-value {
+    font-family: 'Luckiest Guy', cursive;
+    font-size: 15px;
+    color: var(--metal-hi);
+  }
+
+  .win-readout {
+    text-align: center;
+    background: linear-gradient(180deg, #0d0d0c, #050504);
+    border: 2px solid #000;
+    border-radius: 10px;
+    padding: 8px;
+    margin-bottom: 8px;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.8);
+    flex: 0 0 auto;
+  }
+
+  .win-readout-label {
+    font-family: 'Luckiest Guy', cursive;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: #9a978c;
+  }
+
+  .win-readout-value {
+    font-family: 'Luckiest Guy', cursive;
+    font-size: 26px;
+    color: var(--win-glow);
+    text-shadow: 0 0 10px rgba(242,195,85,0.4);
+  }
+
+  .lever {
+    position: absolute;
+    right: -22px;
+    top: 14px;
+    bottom: 14px;
+    width: 18px;
+    cursor: pointer;
+    z-index: 5;
+  }
+
+  .lever-track {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 10px;
+    width: 6px;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, #1a1a18, #55534c, #1a1a18);
+    border-radius: 4px;
+    box-shadow: 0 0 4px rgba(0,0,0,0.6);
+  }
+
+  .lever-knob {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 26px;
+    height: 26px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #8a887f, #2c2b28 70%);
+    border: 2px solid #050504;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.6);
+    transition: transform 0.15s ease;
+  }
+
+  .lever:active .lever-knob {
+    transform: translateX(-50%) translateY(6px);
   }
 
   button.reset-btn {
@@ -1048,21 +1307,41 @@
 
 <div class="cabinet">
   <div class="top-bar">
-    <button class="icon-btn" id="menu-btn" title="Menu">☰</button>
-    <div class="mini-title" id="title-letters"></div>
-    <button class="icon-btn" id="card-open-btn" title="Player's Card">🃏</button>
+    <div class="pill-badge">
+      <img class="pill-icon" id="balance-pill-icon" alt="coin">
+      <div class="pill-text">
+        <div class="pill-label">Balance</div>
+        <div class="pill-value" id="balance-pill-value">0</div>
+      </div>
+    </div>
+    <button class="pill-badge" id="card-open-btn" title="Player's Card">
+      <div class="pill-text">
+        <div class="pill-label">Relics</div>
+        <div class="pill-value" id="relics-pill-value">0/1</div>
+      </div>
+      <span class="pill-icon trophy">🏆</span>
+    </button>
   </div>
 
   <div class="frame" id="cabinet-frame">
+    <div class="lever" id="lever-btn" title="Pull to spin">
+      <div class="lever-track"></div>
+      <div class="lever-knob"></div>
+    </div>
+
     <div class="screen">
+      <div class="header-emblem">
+        <img id="header-emblem-img" alt="">
+      </div>
+
+      <div class="streak-strip" id="streak-strip"></div>
+
+      <div class="mini-title" id="title-letters"></div>
+
       <div class="status-row">
         <div class="stat">
           <div class="label">Round</div>
           <div class="value" id="round-val">1</div>
-        </div>
-        <div class="stat">
-          <div class="label">Bankroll</div>
-          <div class="value" id="bankroll-val">0</div>
         </div>
         <div class="stat">
           <div class="label">Spins Left</div>
@@ -1084,10 +1363,26 @@
 
       <div class="grid-wrap" id="grid-wrap"><div class="grid" id="grid"></div></div>
 
+      <div class="win-readout">
+        <div class="win-readout-label">Win</div>
+        <div class="win-readout-value" id="win-readout-value">0</div>
+      </div>
+
       <div class="message" id="message">Pull the lever to begin.</div>
 
+      <div class="bottom-controls-row">
+        <button class="mini-ctrl-btn" id="paytable-shortcut-btn">Pay<br>Table</button>
+        <div class="mini-ctrl-display">
+          <div class="mini-ctrl-label">Spins Left</div>
+          <div class="mini-ctrl-value" id="spins-left-mirror">8</div>
+        </div>
+        <button class="mini-ctrl-btn" id="sound-toggle-btn">🔊<br>Sound</button>
+      </div>
+
       <div class="controls">
+        <button class="icon-btn" id="menu-btn" title="Menu">☰</button>
         <button class="spin-btn" id="spin-btn">SPIN</button>
+        <button class="auto-spin-btn" id="auto-spin-btn">Auto<br>Spin</button>
       </div>
     </div>
   </div>
@@ -1350,11 +1645,21 @@ const cardModalEl = document.getElementById('card-modal');
 const cardCloseBtn = document.getElementById('card-close-btn');
 const messageEl = document.getElementById('message');
 const roundValEl = document.getElementById('round-val');
-const bankrollValEl = document.getElementById('bankroll-val');
+const bankrollValEl = document.getElementById('balance-pill-value');
 const spinsValEl = document.getElementById('spins-val');
 const quotaTextEl = document.getElementById('quota-text');
 const quotaFillEl = document.getElementById('quota-fill');
 const quotaBarWrapEl = document.getElementById('quota-bar-wrap');
+const relicsPillValueEl = document.getElementById('relics-pill-value');
+const balancePillIconEl = document.getElementById('balance-pill-icon');
+const headerEmblemImgEl = document.getElementById('header-emblem-img');
+const streakStripEl = document.getElementById('streak-strip');
+const winReadoutValueEl = document.getElementById('win-readout-value');
+const spinsLeftMirrorEl = document.getElementById('spins-left-mirror');
+const leverBtnEl = document.getElementById('lever-btn');
+const paytableShortcutBtnEl = document.getElementById('paytable-shortcut-btn');
+const soundToggleBtnEl = document.getElementById('sound-toggle-btn');
+const autoSpinBtnEl = document.getElementById('auto-spin-btn');
 const paytableEl = document.getElementById('paytable');
 const shopFrameEl = document.getElementById('shop-modal');
 const shopSubEl = document.getElementById('shop-sub');
@@ -1402,14 +1707,27 @@ function getRoundScalingCredits() {
 function applyHotStreak(didWin) {
   if (!modifiers.hotStreak) {
     winStreak = didWin ? winStreak + 1 : 0; // still tracked, in case Hot Streak gets bought mid-run
+    renderStreakStrip();
     return 1;
   }
   if (didWin) {
     winStreak = Math.min(winStreak + 1, HOT_STREAK_MULTIPLIERS.length - 1);
+    renderStreakStrip();
     return HOT_STREAK_MULTIPLIERS[winStreak];
   }
   winStreak = 0;
+  renderStreakStrip();
   return 1;
+}
+
+function renderStreakStrip() {
+  const lightCount = HOT_STREAK_MULTIPLIERS.length - 1; // one light per streak step
+  streakStripEl.innerHTML = '';
+  for (let i = 0; i < lightCount; i++) {
+    const light = document.createElement('div');
+    light.className = 'streak-light' + (i < winStreak ? ' lit' : '');
+    streakStripEl.appendChild(light);
+  }
 }
 
 function computeModifiers() {
@@ -1516,8 +1834,9 @@ function ensureAudio() {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   }
 }
+let soundEnabled = true;
 function beep(freq, duration, type = 'sine', gain = 0.08, delay = 0) {
-  if (!audioCtx) return;
+  if (!audioCtx || !soundEnabled) return;
   const osc = audioCtx.createOscillator();
   const g = audioCtx.createGain();
   osc.type = type;
@@ -1988,6 +2307,8 @@ function renderStats() {
   roundValEl.textContent = round;
   bankrollValEl.textContent = fmtCredits(bankroll);
   spinsValEl.textContent = spinsLeft;
+  spinsLeftMirrorEl.textContent = spinsLeft;
+  relicsPillValueEl.textContent = `${ownedRelics.length}/${getCardSockets()}`;
   quotaTextEl.textContent = `${fmtCredits(Math.min(roundProgress, quota))} / ${fmtCredits(quota)}`;
   const pct = Math.min(100, (roundProgress / quota) * 100);
   quotaFillEl.style.width = pct + '%';
@@ -2095,6 +2416,7 @@ function startNewRound() {
 }
 
 function resetRun() {
+  stopAutoSpin();
   round = 1;
   bankroll = 0;
   ownedRelics = [];
@@ -2207,6 +2529,7 @@ function renderShopBankrollAndSockets() {
 }
 
 function openShop() {
+  stopAutoSpin();
   rerollCount = 0;
   shopOffers = pickShopOffers();
   shopSubEl.textContent = `Round ${round} cleared!`;
@@ -2413,6 +2736,7 @@ function doSpin() {
 
 function finishSpin({ spinPayout, clusters, triggersFreeSpins, scatterCount }) {
   renderStats();
+  winReadoutValueEl.textContent = fmtCredits(spinPayout);
 
   if (triggersFreeSpins) {
     setMessage(
@@ -2459,6 +2783,7 @@ function checkRoundOutcome() {
 
   if (spinsLeft <= 0) {
     spinBtn.disabled = true;
+    stopAutoSpin();
     setTimeout(() => {
       playBustSound();
       setMessage(`Out of spins — needed ${fmtCredits(quota - roundProgress)} more. Run over on Round ${round}.`, 'lose-msg');
@@ -2468,6 +2793,7 @@ function checkRoundOutcome() {
   }
 
   spinBtn.disabled = false;
+  maybeContinueAutoSpin();
 }
 
 // ---------- Free Spins (award modal + auto-play bonus mode) ----------
@@ -2576,6 +2902,7 @@ function runNextFreeSpin() {
     scatterTiles,
     onDone: () => {
       renderStats();
+      winReadoutValueEl.textContent = fmtCredits(spinPayout);
       updateFreeSpinBanner();
 
       if (retriggered) {
@@ -2745,6 +3072,54 @@ cardOpenBtn.addEventListener('click', () => cardModalEl.classList.add('active'))
 cardCloseBtn.addEventListener('click', () => cardModalEl.classList.remove('active'));
 continueBtn.addEventListener('click', closeShopAndAdvance);
 rerollBtnEl.addEventListener('click', rerollShop);
+
+// Header emblem (Devil) and balance icon (Coin) reuse existing in-game art.
+headerEmblemImgEl.src = SYMBOLS.bar.icon;
+headerEmblemImgEl.alt = 'Devil';
+balancePillIconEl.src = SYMBOLS.scatter.icon;
+balancePillIconEl.alt = 'Coin';
+renderStreakStrip();
+
+// Decorative lever — also acts as an alternate Spin trigger.
+leverBtnEl.addEventListener('click', () => doSpin());
+
+// Pay Table shortcut jumps straight to the Menu (which holds the paytable).
+paytableShortcutBtnEl.addEventListener('click', () => menuModalEl.classList.add('active'));
+
+// Sound toggle.
+soundToggleBtnEl.addEventListener('click', () => {
+  soundEnabled = !soundEnabled;
+  soundToggleBtnEl.innerHTML = soundEnabled ? '🔊<br>Sound' : '🔇<br>Sound';
+  soundToggleBtnEl.classList.toggle('muted', !soundEnabled);
+});
+
+// Auto Spin: repeats spins automatically whenever the spin button becomes
+// available again, until the player turns it off, the shop opens (needs a
+// manual decision), or the run ends.
+let autoSpinning = false;
+const AUTO_SPIN_DELAY_MS = 700;
+
+function maybeContinueAutoSpin() {
+  if (!autoSpinning) return;
+  if (isSpinning || inFreeSpins || spinBtn.disabled || spinsLeft <= 0) return;
+  setTimeout(() => {
+    if (autoSpinning && !isSpinning && !inFreeSpins && !spinBtn.disabled && spinsLeft > 0) {
+      doSpin();
+    }
+  }, AUTO_SPIN_DELAY_MS);
+}
+
+function stopAutoSpin() {
+  autoSpinning = false;
+  autoSpinBtnEl.classList.remove('active');
+}
+
+autoSpinBtnEl.addEventListener('click', () => {
+  autoSpinning = !autoSpinning;
+  autoSpinBtnEl.classList.toggle('active', autoSpinning);
+  if (autoSpinning) maybeContinueAutoSpin();
+});
+
 renderPaytable();
 resetRun();
 
