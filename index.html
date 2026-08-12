@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Big Spin! — V0.23</title>
+<title>The Big Spin! — v0.24</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Arbutus+Slab&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -49,7 +49,7 @@
     max-width: 480px;
     height: 100dvh;
     height: 100vh;
-    padding: 10px 10px 14px;
+    padding: 10px 6px 14px;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
@@ -152,7 +152,7 @@
     background: linear-gradient(160deg, #7a7972 0%, #3f3e3a 18%, #55534c 32%, #2a2925 55%, #4a4944 72%, #201f1c 100%);
     border: 3px solid #0a0a0a;
     border-radius: 26px;
-    padding: 12px;
+    padding: 8px;
     box-shadow: 0 14px 34px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -2px 6px rgba(0,0,0,0.5);
     position: relative;
     flex: 1 1 auto;
@@ -178,7 +178,7 @@
     background: linear-gradient(180deg, #141312, #0a0a09);
     border: 3px solid #050504;
     border-radius: 16px;
-    padding: 14px;
+    padding: 8px;
     box-shadow: inset 0 4px 14px rgba(0,0,0,0.75), inset 0 0 0 1px rgba(255,255,255,0.06);
     flex: 1 1 auto;
     min-height: 0;
@@ -271,11 +271,6 @@
     align-items: center;
     gap: 0;
     margin-bottom: 8px;
-    border: 4px solid var(--ink);
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 4px 4px 0 var(--ink);
-    background: var(--ink);
   }
 
   /* Each column's width/height are set as explicit pixels via JS, computed
@@ -618,7 +613,7 @@
   }
 
   .grid.freespin-active {
-    box-shadow: 0 0 0 4px var(--red), 6px 6px 0 var(--ink);
+    box-shadow: 0 0 16px 4px var(--red);
     border-radius: 12px;
   }
 
@@ -1947,6 +1942,10 @@ function renderGrid(gridState, winTiles = new Set(), scatterTiles = new Set()) {
     gridEl.appendChild(colObj.viewport);
     cols.push(colObj);
   }
+  // Reset to full width BEFORE measuring — otherwise each render measures
+  // off whatever width the previous render left behind, and any narrowing
+  // compounds across renders instead of always starting from a true baseline.
+  reelFrameGroupEl.style.width = '100%';
   // Size after every column is attached, so the grid container's own
   // clientHeight/clientWidth reflect real post-layout available space.
   const tileSizePx = computeTileSizePx();
@@ -2015,6 +2014,11 @@ function runReelAnimation(finalGrid, { winTiles = new Set(), scatterTiles = new 
     gridEl.appendChild(colObj.viewport);
     columns.push(colObj);
   }
+  // Reset to full width BEFORE measuring — otherwise each spin measures off
+  // whatever width the previous spin left behind, and any narrowing
+  // compounds across renders instead of always starting from a true baseline.
+  // This is what caused reels to shrink and stay shrunk across Free Spins.
+  reelFrameGroupEl.style.width = '100%';
   // Size after every column is attached, so the grid container's own
   // clientHeight/clientWidth reflect real post-layout available space
   // rather than relying on percentage-height cascades through aspect-ratio.
