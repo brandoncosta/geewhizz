@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Big Spin! — v0.19</title>
+<title>The Big Spin! — Prototype</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -217,6 +217,14 @@
     transition: width 0.4s ease;
   }
 
+  .grid-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   .grid {
     display: flex;
     justify-content: center;
@@ -228,8 +236,6 @@
     overflow: hidden;
     box-shadow: 4px 4px 0 var(--ink);
     background: var(--ink);
-    flex: 1 1 auto;
-    min-height: 0;
   }
 
   /* Each column's width/height are set as explicit pixels via JS, computed
@@ -399,8 +405,8 @@
     font-family: 'Space Grotesk', sans-serif;
     font-size: 12px;
     font-weight: 700;
-    background: var(--cream);
-    color: var(--ink);
+    background: var(--red);
+    color: var(--cream);
     border: 2px solid var(--ink);
     border-radius: 999px;
     padding: 10px 18px;
@@ -409,12 +415,13 @@
   }
 
   .paytable {
-    margin-top: 22px;
+    margin-top: 0;
     background: var(--paper-panel);
     border: 3px solid var(--ink);
     border-radius: 14px;
     padding: 12px 14px;
     box-shadow: 4px 4px 0 var(--ink);
+    margin-bottom: 18px;
   }
 
   .paytable h2 {
@@ -431,7 +438,7 @@
     justify-content: space-between;
     font-size: 13px;
     padding: 4px 0;
-    border-bottom: 1px dashed rgba(244,234,208,0.15);
+    border-bottom: 1px dashed rgba(28,20,15,0.18);
   }
 
   .paytable-row:last-child { border-bottom: none; }
@@ -598,21 +605,46 @@
 
   .shop-header {
     text-align: center;
-    margin-bottom: 14px;
+    margin-bottom: 10px;
   }
 
   .shop-header .shop-title {
     font-family: 'Luckiest Guy', cursive;
-    font-size: 18px;
-    color: var(--cream);
+    font-size: 20px;
+    color: var(--red);
     -webkit-text-stroke: 1px var(--ink);
   }
 
   .shop-header .shop-sub {
     font-size: 12px;
-    color: var(--cream);
+    color: var(--teal);
     margin-top: 4px;
     font-weight: 700;
+  }
+
+  .shop-bankroll-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--mustard);
+    border: 3px solid var(--ink);
+    border-radius: 10px;
+    padding: 8px 14px;
+    margin-bottom: 16px;
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+
+  .shop-bankroll-label {
+    font-family: 'Luckiest Guy', cursive;
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--ink);
+  }
+
+  .shop-bankroll-value {
+    font-family: 'Luckiest Guy', cursive;
+    font-size: 18px;
+    color: var(--ink);
   }
 
   .shop-offers {
@@ -629,9 +661,19 @@
     font-family: 'Luckiest Guy', cursive;
     font-size: 12px;
     letter-spacing: 1px;
-    color: var(--cream);
-    -webkit-text-stroke: 0.5px var(--ink);
+    color: var(--red-dark);
     margin-bottom: 8px;
+  }
+
+  .socket-badge {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--cream);
+    background: var(--teal);
+    border: 2px solid var(--ink);
+    border-radius: 999px;
+    padding: 2px 10px;
   }
 
   button.reroll-btn {
@@ -659,8 +701,8 @@
 
   .shop-owned-section .empty {
     font-size: 12px;
-    color: var(--cream);
-    opacity: 0.8;
+    color: var(--teal);
+    opacity: 0.9;
     font-weight: 700;
   }
 
@@ -668,7 +710,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: var(--cream);
+    background: var(--tile-bg);
     border: 2px solid var(--ink);
     border-radius: 8px;
     padding: 8px 10px;
@@ -699,8 +741,7 @@
     align-items: center;
     text-align: center;
     margin: 4px 0 14px;
-    color: var(--cream);
-    opacity: 0.85;
+    color: var(--red-dark);
     font-family: 'Luckiest Guy', cursive;
     font-size: 11px;
     letter-spacing: 2px;
@@ -710,8 +751,8 @@
     content: '';
     flex: 1;
     height: 2px;
-    background: var(--cream);
-    opacity: 0.4;
+    background: var(--ink);
+    opacity: 0.25;
   }
 
   .shop-divider span {
@@ -879,7 +920,32 @@
     font-size: 12px;
     color: var(--ink);
     line-height: 1.5;
-    margin: 14px 0;
+    margin: 8px 0 16px;
+  }
+
+  .menu-header {
+    text-align: center;
+    margin-bottom: 4px;
+  }
+
+  .menu-title {
+    font-family: 'Luckiest Guy', cursive;
+    font-size: 18px;
+    color: var(--red);
+    -webkit-text-stroke: 1px var(--ink);
+  }
+
+  .menu-danger-zone {
+    margin-top: 20px;
+    padding-top: 14px;
+    border-top: 2px dashed rgba(28,20,15,0.25);
+    text-align: center;
+  }
+
+  .menu-danger-zone .rules-text {
+    color: var(--red-dark);
+    font-weight: 700;
+    text-align: center;
   }
 
   .modal-card h2 {
@@ -1016,7 +1082,7 @@
 
       <div class="freespin-banner" id="freespin-banner"></div>
 
-      <div class="grid" id="grid"></div>
+      <div class="grid-wrap" id="grid-wrap"><div class="grid" id="grid"></div></div>
 
       <div class="message" id="message">Pull the lever to begin.</div>
 
@@ -1035,6 +1101,11 @@
       <div class="shop-sub" id="shop-sub"></div>
     </div>
 
+    <div class="shop-bankroll-box">
+      <span class="shop-bankroll-label">💰 BANKROLL</span>
+      <span class="shop-bankroll-value" id="shop-bankroll-value">0</span>
+    </div>
+
     <div class="shop-section-label">
       <span>RELICS FOR SALE</span>
       <button class="reroll-btn" id="reroll-btn">🎲 REROLL</button>
@@ -1042,7 +1113,10 @@
     <div class="shop-offers" id="shop-offers"></div>
 
     <div class="shop-owned-section" id="shop-owned-section">
-      <div class="shop-section-label"><span>YOUR RELICS</span></div>
+      <div class="shop-section-label">
+        <span>YOUR RELICS</span>
+        <span class="socket-badge" id="shop-socket-badge">0/1</span>
+      </div>
       <div id="shop-owned-relics"></div>
     </div>
 
@@ -1076,9 +1150,21 @@
 <div class="modal-overlay" id="menu-modal">
   <div class="modal-card menu-modal-card">
     <button class="modal-close-btn" id="menu-close-btn">✕</button>
+
+    <div class="menu-header">
+      <div class="menu-title">📖 HOW TO PLAY</div>
+    </div>
+
+    <p class="rules-text">Cluster-pay: 4+ matching tiles touching (up/down/left/right) anywhere on the grid. 3+ Coins triggers Free Spins.</p>
+
+    <div class="shop-section-label"><span>PAYTABLE</span></div>
     <div class="paytable" id="paytable" style="margin-top:0;"></div>
-    <p class="rules-text">Cluster-pay: 4+ matching tiles touching (up/down/left/right) anywhere on the grid. 3+ Scatters triggers Free Spins.</p>
-    <button class="reset-btn" id="reset-btn">Reset Run</button>
+
+    <div class="menu-danger-zone">
+      <div class="shop-section-label"><span>DANGER ZONE</span></div>
+      <p class="rules-text">This ends your current run for good — bankroll, relics, and progress are all lost.</p>
+      <button class="reset-btn" id="reset-btn">Reset Run</button>
+    </div>
   </div>
 </div>
 
@@ -1241,6 +1327,7 @@ let freeSpinMultiplier = 1;
 let freeSpinTotalWin = 0;
 
 const gridEl = document.getElementById('grid');
+const gridWrapEl = document.getElementById('grid-wrap');
 const cabinetFrameEl = document.getElementById('cabinet-frame');
 const spinBtn = document.getElementById('spin-btn');
 const resetBtn = document.getElementById('reset-btn');
@@ -1260,6 +1347,8 @@ const quotaBarWrapEl = document.getElementById('quota-bar-wrap');
 const paytableEl = document.getElementById('paytable');
 const shopFrameEl = document.getElementById('shop-modal');
 const shopSubEl = document.getElementById('shop-sub');
+const shopBankrollValueEl = document.getElementById('shop-bankroll-value');
+const shopSocketBadgeEl = document.getElementById('shop-socket-badge');
 const shopOffersEl = document.getElementById('shop-offers');
 const cardUpgradeOfferEl = document.getElementById('card-upgrade-offer');
 const rerollBtnEl = document.getElementById('reroll-btn');
@@ -1558,8 +1647,8 @@ function createReelColumn() {
 // container fully, on both axes, no matter how many rows a relic has
 // added. This is what makes row-expansion safe in a no-scroll layout.
 function computeTileSizePx() {
-  const availH = gridEl.clientHeight;
-  const availW = gridEl.clientWidth;
+  const availH = gridWrapEl.clientHeight;
+  const availW = gridWrapEl.clientWidth;
   return Math.max(24, Math.min(availH / GRID_ROWS, availW / GRID_COLS));
 }
 
@@ -1620,7 +1709,13 @@ function renderGrid(gridState, winTiles = new Set(), scatterTiles = new Set()) {
 }
 
 function runReelAnimation(finalGrid, { winTiles = new Set(), scatterTiles = new Set(), onDone }) {
-  const startBoard = currentBoard || finalGrid;
+  // If GRID_ROWS just changed (a row relic was bought/sold since this board
+  // was captured), the old board won't have the right number of tiles —
+  // reading past its end silently returns undefined and crashes symbol
+  // lookup. Fall back to a freshly-sized board rather than that.
+  const startBoard = (currentBoard && currentBoard.length === GRID_COLS * GRID_ROWS)
+    ? currentBoard
+    : finalGrid;
   gridEl.innerHTML = '';
   maybeStretchFrame();
 
@@ -1975,7 +2070,8 @@ function rerollShop() {
   shopOffers = pickShopOffers();
   renderShopOffers();
   renderRerollButton();
-  shopSubEl.textContent = `Rerolled for ${fmtCredits(price)} credits. Bankroll: ${fmtCredits(bankroll)} credits.`;
+  renderShopBankrollAndSockets();
+  shopSubEl.textContent = `Rerolled for ${fmtCredits(price)} credits.`;
 }
 
 function renderRerollButton() {
@@ -1985,10 +2081,16 @@ function renderRerollButton() {
   rerollBtnEl.disabled = !canAfford;
 }
 
+function renderShopBankrollAndSockets() {
+  shopBankrollValueEl.textContent = fmtCredits(bankroll);
+  shopSocketBadgeEl.textContent = `${ownedRelics.length}/${getCardSockets()}`;
+}
+
 function openShop() {
   rerollCount = 0;
   shopOffers = pickShopOffers();
-  shopSubEl.textContent = `Round ${round} cleared. Bankroll: ${fmtCredits(bankroll)} credits.`;
+  shopSubEl.textContent = `Round ${round} cleared!`;
+  renderShopBankrollAndSockets();
   renderShopOffers();
   renderRerollButton();
   renderShopOwnedRelics();
@@ -2058,7 +2160,8 @@ function sellRelic(relicId) {
   renderShopOffers();
   renderRerollButton();
   renderCardUpgradeOffer();
-  shopSubEl.textContent = `Sold ${relic.name} for ${fmtCredits(refund)} credits. Bankroll: ${fmtCredits(bankroll)} credits.`;
+  renderShopBankrollAndSockets();
+  shopSubEl.textContent = `Sold ${relic.name} for ${fmtCredits(refund)} credits.`;
 }
 
 function getCardUpgradePrice() {
@@ -2106,7 +2209,8 @@ function buyCardUpgrade() {
   renderShopOffers();
   renderRerollButton();
   renderCardUpgradeOffer();
-  shopSubEl.textContent = `Card upgraded to ${CARD_TIERS[cardTierIndex].name}! Bankroll: ${fmtCredits(bankroll)} credits.`;
+  renderShopBankrollAndSockets();
+  shopSubEl.textContent = `Card upgraded to ${CARD_TIERS[cardTierIndex].name}!`;
 }
 
 function buyRelic(relicId) {
@@ -2128,7 +2232,8 @@ function buyRelic(relicId) {
   renderRerollButton();
   renderShopOwnedRelics();
   renderCardUpgradeOffer();
-  shopSubEl.textContent = `Socketed ${relic.name}. Bankroll: ${fmtCredits(bankroll)} credits.`;
+  renderShopBankrollAndSockets();
+  shopSubEl.textContent = `Socketed ${relic.name}.`;
 }
 
 function closeShopAndAdvance() {
@@ -2492,7 +2597,9 @@ window.addEventListener('resize', () => {
   clearTimeout(resizeDebounceTimer);
   resizeDebounceTimer = setTimeout(() => {
     if (!isSpinning && !inFreeSpins && currentBoard) {
-      renderGrid(currentBoard);
+      const boardToRender = currentBoard.length === GRID_COLS * GRID_ROWS ? currentBoard : generateGrid();
+      renderGrid(boardToRender);
+      currentBoard = boardToRender;
     }
   }, 150);
 });
