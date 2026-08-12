@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Big Spin! — Prototype</title>
+<title>The Big Spin! — v0.21</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -1240,6 +1240,8 @@ const BIG_WIN_COIN_SRC = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAX0AAAGQ
 const SHOP_OFFER_COUNT = 3;
 const REROLL_BASE_PRICE = 8;   // escalates within a single shop visit, resets next time
 const REROLL_GROWTH = 1.6;
+// Hot Streak: multiplier ladder indexed by consecutive winning spins (0 = no streak yet).
+const HOT_STREAK_MULTIPLIERS = [1, 1.1, 1.25, 1.5, 2.0];
 
 // Display-only inflation, like real slots showing "3,600 credits" for $36.
 // Every internal number stays exactly as balanced/simulated — this only
@@ -1250,6 +1252,9 @@ function fmtCredits(raw) {
 }
 function disp(raw) {
   return Math.round(raw * DISPLAY_MULTIPLIER);
+}
+function fmtMult(raw) {
+  return Math.round(raw * 100) / 100; // avoids floating-point drift like 1.2999999999999998
 }
 
 // Player's Card tiers. Climbing a tier adds a relic socket AND scales up
@@ -1278,23 +1283,28 @@ const CARD_UPGRADE_GROWTH = 1.9;      // each subsequent upgrade costs much more
 //   retriggerThresholdReduction: -scatters needed to retrigger Free Spins
 //   wildSymbols: [symbol ids that substitute for any clusterable symbol]
 const RELICS = [
-  // Common — simple, cheap, good early picks (12-22 credits)
-  { id: 'bomb_squad',    name: 'Bomb Squad',    tier: 'Common',   price: 15, desc: `Bomb pays +${disp(1)} credit per tile in a cluster.`, apply: { payBonus: { cherry: 1 } } },
-  { id: 'coin_flip',     name: 'Coin Flip',     tier: 'Common',   price: 18, desc: 'Coin is 50% more likely to land on the reels.', apply: { weightMultiplier: { scatter: 1.5 } } },
-  { id: 'nine_lives',    name: 'Nine Lives',    tier: 'Common',   price: 20, desc: `Cat and Devil each pay +${disp(1)} credit per tile in a cluster.`, apply: { payBonus: { bell: 1, bar: 1 } } },
-  { id: 'spare_change',  name: 'Spare Change',  tier: 'Common',   price: 22, desc: `+${disp(2)} flat credits every single spin, win or not.`, apply: { flatCredits: 2 } },
+  // Common — simple, cheap, good early picks (12-22 credits) — all unlocked from round 1
+  { id: 'bomb_squad',    name: 'Bomb Squad',    tier: 'Common',   price: 15, unlockRound: 1, desc: `Bomb pays +${disp(1)} credit per tile in a cluster.`, apply: { payBonus: { cherry: 1 } } },
+  { id: 'coin_flip',     name: 'Coin Flip',     tier: 'Common',   price: 18, unlockRound: 1, desc: 'Coin is 50% more likely to land on the reels.', apply: { weightMultiplier: { scatter: 1.5 } } },
+  { id: 'nine_lives',    name: 'Nine Lives',    tier: 'Common',   price: 20, unlockRound: 1, desc: `Cat and Devil each pay +${disp(1)} credit per tile in a cluster.`, apply: { payBonus: { bell: 1, bar: 1 } } },
+  { id: 'spare_change',  name: 'Spare Change',  tier: 'Common',   price: 22, unlockRound: 1, desc: `+${disp(2)} flat credits every spin. This bonus increases by ${disp(1)} each round.`, apply: { roundScalingCreditsBase: 2, roundScalingCreditsPerRound: 1 } },
+  { id: 'loaded_reels',  name: 'Loaded Reels',  tier: 'Common',   price: 20, unlockRound: 1, desc: 'The first and last reels are 50% more likely to land Coins.', apply: { edgeReelScatterBonus: 0.5 } },
 
-  // Uncommon — structural changes, not just bigger numbers (26-38 credits)
-  { id: 'warm_up_act',   name: 'Warm-Up Act',   tier: 'Uncommon', price: 28, desc: 'Free Spins start at a 2x multiplier instead of 1x.', apply: { freeSpinStartMultiplierBonus: 1 } },
-  { id: 'encore',        name: 'Encore',        tier: 'Uncommon', price: 30, desc: 'Free Spins awards 3 extra spins whenever it triggers.', apply: { freeSpinsBonusSpins: 3 } },
-  { id: 'easy_mark',     name: 'Easy Mark',     tier: 'Uncommon', price: 36, desc: 'Free Spins only needs 2 Coins to retrigger, instead of 3.', apply: { retriggerThresholdReduction: 1 } },
+  // Uncommon — structural changes, not just bigger numbers (26-38 credits) — unlock rounds 2-5
+  { id: 'warm_up_act',   name: 'Warm-Up Act',   tier: 'Uncommon', price: 28, unlockRound: 2, desc: 'Free Spins start at a 2x multiplier instead of 1x.', apply: { freeSpinStartMultiplierBonus: 1 } },
+  { id: 'encore',        name: 'Encore',        tier: 'Uncommon', price: 30, unlockRound: 3, desc: 'Free Spins awards 3 extra spins whenever it triggers.', apply: { freeSpinsBonusSpins: 3 } },
+  { id: 'front_row',     name: 'Front Row Seats', tier: 'Uncommon', price: 26, unlockRound: 3, desc: `Winning tiles in the first reel pay an extra +${disp(2)} credits.`, apply: { firstColumnPayBonus: 2 } },
+  { id: 'final_act',     name: 'Final Act',     tier: 'Uncommon', price: 28, unlockRound: 4, desc: 'The last spin of Free Spins gets +2x multiplier on top of its current one.', apply: { finalSpinMultBonus: 2 } },
+  { id: 'easy_mark',     name: 'Easy Mark',     tier: 'Uncommon', price: 36, unlockRound: 5, desc: 'Free Spins only needs 2 Coins to retrigger, instead of 3.', apply: { retriggerThresholdReduction: 1 } },
 
-  // Rare — build-defining (42-58 credits)
-  { id: 'sevens_fortune', name: "Seven's Fortune", tier: 'Rare',  price: 42, desc: `Seven pays +${disp(3)} credits per tile in a cluster.`, apply: { payBonus: { seven: 3 } } },
-  { id: 'hot_streak',    name: 'Hot Streak',    tier: 'Rare',     price: 46, desc: 'All spin payouts are increased by 15%.', apply: { globalPayMultiplier: 0.15 } },
-  { id: 'devils_deal',   name: "Devil's Deal",  tier: 'Rare',     price: 52, desc: 'Devil becomes Wild — it substitutes for any symbol in a cluster.', apply: { wildSymbols: ['bar'] } },
-  { id: 'loosen_up',     name: 'Loosen Up',     tier: 'Rare',     price: 58, desc: 'Clusters only need 3 connected tiles to pay out, instead of 4.', apply: { minClusterReduction: 1 } },
-  { id: 'double_decker', name: 'Double Decker', tier: 'Rare',     price: 55, desc: 'Adds 1 row to the reels — more tiles, bigger clusters. Removed if this relic is swapped out.', apply: { rowBonus: 1 } },
+  // Rare — build-defining (42-58 credits) — unlock rounds 4-10, strongest gated latest
+  { id: 'sevens_fortune', name: "Seven's Fortune", tier: 'Rare',  price: 42, unlockRound: 4, desc: `Seven pays +${disp(3)} credits per tile in a cluster.`, apply: { payBonus: { seven: 3 } } },
+  { id: 'devils_deal',   name: "Devil's Deal",  tier: 'Rare',     price: 52, unlockRound: 5, desc: 'Devil becomes Wild — it substitutes for any symbol in a cluster.', apply: { wildSymbols: ['bar'] } },
+  { id: 'hot_streak',    name: 'Hot Streak',    tier: 'Rare',     price: 54, unlockRound: 6, desc: 'Each consecutive winning spin increases your payout multiplier, up to 2x — a losing spin resets it.', apply: { hotStreak: true } },
+  { id: 'standing_ovation', name: 'Standing Ovation', tier: 'Rare', price: 44, unlockRound: 7, desc: 'Free Spins multiplier climbs +0.15x every spin, retrigger or not.', apply: { freeSpinPerSpinMultGrowth: 0.15 } },
+  { id: 'double_decker', name: 'Double Decker', tier: 'Rare',     price: 55, unlockRound: 7, desc: 'Adds 1 row to the reels — more tiles, bigger clusters. Removed if this relic is swapped out.', apply: { rowBonus: 1 } },
+  { id: 'full_house',    name: 'Full House',    tier: 'Rare',     price: 48, unlockRound: 8, desc: 'Free Spins begin with 1 extra row on the board — reverts once Free Spins ends.', apply: { freeSpinRowBonus: 1 } },
+  { id: 'loosen_up',     name: 'Loosen Up',     tier: 'Rare',     price: 58, unlockRound: 10, desc: 'Clusters only need 3 connected tiles to pay out, instead of 4.', apply: { minClusterReduction: 1 } },
 ];
 
 // symbol id -> { icon, pay (per tile in a paying cluster), weight (draw chance), clusterable }
@@ -1315,6 +1325,7 @@ let quota = QUOTA_BASE;
 let isSpinning = false;
 let grid = []; // flat array, length GRID_COLS*GRID_ROWS, values are symbol ids
 let currentBoard = null; // symbols actually on screen right now — spins continue from this, not a fresh random set
+let winStreak = 0; // consecutive winning spins (base game and Free Spins both count); resets on a non-winning spin
 let ownedRelics = [];   // array of relic ids currently socketed in the card
 let rerollCount = 0;    // resets each time the shop opens; drives escalating reroll price
 let shopOffers = [];    // current shop's 3 relic offers
@@ -1379,6 +1390,28 @@ function getCardTierBonus() {
   return CARD_TIERS[cardTierIndex].bonusMult;
 }
 
+function getRoundScalingCredits() {
+  if (!modifiers.roundScalingCreditsBase && !modifiers.roundScalingCreditsPerRound) return 0;
+  const raw = modifiers.roundScalingCreditsBase + modifiers.roundScalingCreditsPerRound * (round - 1);
+  return raw * (1 + getCardTierBonus());
+}
+
+// Call once per resolved spin (base game or Free Spins) with whether it won.
+// Returns the Hot Streak multiplier to apply to that spin's payout, and
+// updates the shared streak counter either way.
+function applyHotStreak(didWin) {
+  if (!modifiers.hotStreak) {
+    winStreak = didWin ? winStreak + 1 : 0; // still tracked, in case Hot Streak gets bought mid-run
+    return 1;
+  }
+  if (didWin) {
+    winStreak = Math.min(winStreak + 1, HOT_STREAK_MULTIPLIERS.length - 1);
+    return HOT_STREAK_MULTIPLIERS[winStreak];
+  }
+  winStreak = 0;
+  return 1;
+}
+
 function computeModifiers() {
   const mods = {
     payBonus: {},
@@ -1391,6 +1424,14 @@ function computeModifiers() {
     wildSymbols: new Set(),
     globalPayMultiplier: 0,
     rowBonus: 0,
+    freeSpinRowBonus: 0,
+    freeSpinPerSpinMultGrowth: 0,
+    finalSpinMultBonus: 0,
+    edgeReelScatterBonus: 0,
+    firstColumnPayBonus: 0,
+    hotStreak: false,
+    roundScalingCreditsBase: 0,
+    roundScalingCreditsPerRound: 0,
   };
   const tierBonus = getCardTierBonus(); // scales magnitude-type effects only
 
@@ -1432,6 +1473,30 @@ function computeModifiers() {
     }
     if (a.rowBonus) {
       mods.rowBonus += a.rowBonus;
+    }
+    if (a.freeSpinRowBonus) {
+      mods.freeSpinRowBonus += a.freeSpinRowBonus;
+    }
+    if (a.freeSpinPerSpinMultGrowth) {
+      mods.freeSpinPerSpinMultGrowth += a.freeSpinPerSpinMultGrowth;
+    }
+    if (a.finalSpinMultBonus) {
+      mods.finalSpinMultBonus += a.finalSpinMultBonus;
+    }
+    if (a.edgeReelScatterBonus) {
+      mods.edgeReelScatterBonus += a.edgeReelScatterBonus;
+    }
+    if (a.firstColumnPayBonus) {
+      mods.firstColumnPayBonus += a.firstColumnPayBonus * (1 + tierBonus);
+    }
+    if (a.hotStreak) {
+      mods.hotStreak = true;
+    }
+    if (a.roundScalingCreditsBase) {
+      mods.roundScalingCreditsBase += a.roundScalingCreditsBase;
+    }
+    if (a.roundScalingCreditsPerRound) {
+      mods.roundScalingCreditsPerRound += a.roundScalingCreditsPerRound;
     }
   });
 
@@ -1494,9 +1559,13 @@ function playBustSound() {
 }
 
 // ---------- Grid generation ----------
-function weightedRandomSymbol() {
+function weightedRandomSymbol(col = null) {
+  const isEdgeReel = col === 0 || col === GRID_COLS - 1;
   const entries = Object.entries(SYMBOLS).map(([id, s]) => {
-    const mult = modifiers.weightMultiplier[id] || 1;
+    let mult = modifiers.weightMultiplier[id] || 1;
+    if (id === 'scatter' && isEdgeReel && modifiers.edgeReelScatterBonus) {
+      mult *= (1 + modifiers.edgeReelScatterBonus);
+    }
     return [id, s.weight * mult];
   });
   const total = entries.reduce((sum, [, w]) => sum + w, 0);
@@ -1509,7 +1578,13 @@ function weightedRandomSymbol() {
 }
 
 function generateGrid() {
-  return Array.from({ length: GRID_COLS * GRID_ROWS }, weightedRandomSymbol);
+  const arr = new Array(GRID_COLS * GRID_ROWS);
+  for (let row = 0; row < GRID_ROWS; row++) {
+    for (let col = 0; col < GRID_COLS; col++) {
+      arr[idx(col, row)] = weightedRandomSymbol(col);
+    }
+  }
+  return arr;
 }
 
 // ---------- Cluster detection (flood fill, 4-directional) ----------
@@ -1868,7 +1943,7 @@ function runReelAnimation(finalGrid, { winTiles = new Set(), scatterTiles = new 
     if (ticksRemaining < GRID_ROWS) {
       entering = finalGrid[idx(colState.col, ticksRemaining)];
     } else {
-      entering = weightedRandomSymbol();
+      entering = weightedRandomSymbol(colState.col);
     }
 
     rowEls[0].innerHTML = symbolImgTag(entering);
@@ -2025,6 +2100,7 @@ function resetRun() {
   ownedRelics = [];
   cardTierIndex = 0;
   cardXP = 0;
+  winStreak = 0;
   modifiers = computeModifiers();
   isSpinning = false;
   inFreeSpins = false;
@@ -2045,17 +2121,61 @@ function resetRun() {
 }
 
 // ---------- Shop ----------
+// Tier weight shifts as rounds progress: Common dominates early, Rare
+// dominates late, Uncommon stays a fairly constant middle option throughout.
+function getTierWeight(tier, r) {
+  if (tier === 'Common') return Math.max(0.15, 1.0 - r * 0.05);
+  if (tier === 'Uncommon') return 0.5;
+  if (tier === 'Rare') return Math.min(1.2, 0.1 + r * 0.08);
+  return 0.3;
+}
+
 function pickShopOffers() {
-  // Don't offer relics the player already has socketed — no point re-selling them.
-  const available = RELICS.filter(r => !ownedRelics.includes(r.id));
-  const pool = available.length > 0 ? [...available] : [...RELICS];
+  // Only relics unlocked by the current round, and not already owned.
+  const unlockedPool = RELICS.filter(r => round >= (r.unlockRound || 1) && !ownedRelics.includes(r.id));
+  const pool = unlockedPool.length > 0
+    ? unlockedPool
+    : RELICS.filter(r => round >= (r.unlockRound || 1)); // fallback: everything unlocked already owned
+
   const offers = [];
-  while (offers.length < SHOP_OFFER_COUNT && pool.length > 0) {
-    const i = Math.floor(Math.random() * pool.length);
-    offers.push(pool[i].id);
-    pool.splice(i, 1);
+  const workingPool = [...pool];
+  while (offers.length < SHOP_OFFER_COUNT && workingPool.length > 0) {
+    const weights = workingPool.map(r => getTierWeight(r.tier, round));
+    const total = weights.reduce((a, b) => a + b, 0);
+    let roll = Math.random() * total;
+    let pickedIndex = 0;
+    for (let i = 0; i < workingPool.length; i++) {
+      if (roll < weights[i]) { pickedIndex = i; break; }
+      roll -= weights[i];
+    }
+    offers.push(workingPool[pickedIndex].id);
+    workingPool.splice(pickedIndex, 1);
   }
+
+  ensureAffordableOffer(offers, pool);
   return offers;
+}
+
+// Guarantees at least one offer the player can currently afford, so the
+// shop never presents three choices that are all out of reach.
+function ensureAffordableOffer(offers, pool) {
+  const isAffordable = id => {
+    const r = RELICS.find(rl => rl.id === id);
+    return r && r.price <= bankroll;
+  };
+  if (offers.some(isAffordable)) return;
+
+  const candidates = pool.filter(r => r.price <= bankroll && !offers.includes(r.id));
+  if (candidates.length === 0) return; // nothing affordable exists at all — can't guarantee the impossible
+
+  const cheapest = candidates.reduce((best, r) => (r.price < best.price ? r : best), candidates[0]);
+
+  let mostExpensiveIdx = 0, mostExpensivePrice = -1;
+  offers.forEach((id, i) => {
+    const r = RELICS.find(rl => rl.id === id);
+    if (r.price > mostExpensivePrice) { mostExpensivePrice = r.price; mostExpensiveIdx = i; }
+  });
+  offers[mostExpensiveIdx] = cheapest.id;
 }
 
 function getRerollPrice() {
@@ -2261,12 +2381,20 @@ function doSpin() {
 
   clusters.forEach(cluster => {
     const payPerTile = SYMBOLS[cluster.symbol].pay + (modifiers.payBonus[cluster.symbol] || 0);
-    spinPayout += payPerTile * cluster.tiles.length;
-    cluster.tiles.forEach(t => winTiles.add(t));
+    cluster.tiles.forEach(t => {
+      spinPayout += payPerTile;
+      if (modifiers.firstColumnPayBonus && (t % GRID_COLS) === 0) {
+        spinPayout += modifiers.firstColumnPayBonus;
+      }
+      winTiles.add(t);
+    });
   });
 
-  spinPayout += modifiers.flatCredits;
+  const isWin = clusters.length > 0;
+
+  spinPayout += modifiers.flatCredits + getRoundScalingCredits();
   spinPayout = Math.round(spinPayout * (1 + modifiers.globalPayMultiplier));
+  spinPayout = Math.round(spinPayout * applyHotStreak(isWin));
   roundProgress += spinPayout;
   gainCardXP(XP_PER_SPIN);
 
@@ -2362,12 +2490,19 @@ function beginFreeSpins() {
   cabinetFrameEl.classList.add('freespin-active');
   updateFreeSpinBanner();
   setMessage('🎰 Free Spins begin!', 'scatter-msg');
+
+  // Full House: temporarily grow the board for the duration of Free Spins.
+  // Reverted in endFreeSpins() by recomputing modifiers from owned relics.
+  if (modifiers.freeSpinRowBonus) {
+    GRID_ROWS = Math.min(MAX_GRID_ROWS, GRID_ROWS + modifiers.freeSpinRowBonus);
+  }
+
   setTimeout(runNextFreeSpin, 500);
 }
 
 function updateFreeSpinBanner() {
   freespinBannerEl.style.display = 'block';
-  freespinBannerEl.textContent = `FREE SPINS — ${freeSpinsRemaining} LEFT — ${freeSpinMultiplier}x MULTIPLIER`;
+  freespinBannerEl.textContent = `FREE SPINS — ${freeSpinsRemaining} LEFT — ${fmtMult(freeSpinMultiplier)}x MULTIPLIER`;
 }
 
 function runNextFreeSpin() {
@@ -2380,6 +2515,11 @@ function runNextFreeSpin() {
   playSpinSound();
   grid = generateGrid();
 
+  // Final Act: if this spin would be the last (before any retrigger below
+  // extends it), it gets a one-time bonus multiplier on top of the current one.
+  const isLikelyFinalSpin = freeSpinsRemaining === 0;
+  const effectiveMultiplier = freeSpinMultiplier + (isLikelyFinalSpin ? (modifiers.finalSpinMultBonus || 0) : 0);
+
   const clusters = findClusters(grid);
   const scatterCount = countScatters(grid);
   const winTiles = new Set();
@@ -2387,12 +2527,20 @@ function runNextFreeSpin() {
 
   clusters.forEach(cluster => {
     const payPerTile = SYMBOLS[cluster.symbol].pay + (modifiers.payBonus[cluster.symbol] || 0);
-    spinPayout += payPerTile * cluster.tiles.length;
-    cluster.tiles.forEach(t => winTiles.add(t));
+    cluster.tiles.forEach(t => {
+      spinPayout += payPerTile;
+      if (modifiers.firstColumnPayBonus && (t % GRID_COLS) === 0) {
+        spinPayout += modifiers.firstColumnPayBonus;
+      }
+      winTiles.add(t);
+    });
   });
-  spinPayout += modifiers.flatCredits;
+  const isWin = clusters.length > 0;
+
+  spinPayout += modifiers.flatCredits + getRoundScalingCredits();
   spinPayout = Math.round(spinPayout * (1 + modifiers.globalPayMultiplier));
-  spinPayout *= freeSpinMultiplier;
+  spinPayout = Math.round(spinPayout * applyHotStreak(isWin));
+  spinPayout *= effectiveMultiplier;
   gainCardXP(XP_PER_SPIN);
 
   const effectiveRetriggerCount = Math.max(2, FREE_SPIN_RETRIGGER_COUNT - (modifiers.retriggerThresholdReduction || 0));
@@ -2408,6 +2556,11 @@ function runNextFreeSpin() {
     freeSpinsRemaining += retriggerBonusSpins;
     freeSpinsTotalGranted += retriggerBonusSpins;
     freeSpinMultiplier += FREE_SPIN_RETRIGGER_MULT_BONUS;
+  }
+
+  // Standing Ovation: multiplier climbs a little every spin, retrigger or not.
+  if (modifiers.freeSpinPerSpinMultGrowth) {
+    freeSpinMultiplier += modifiers.freeSpinPerSpinMultGrowth;
   }
 
   roundProgress += spinPayout;
@@ -2428,13 +2581,13 @@ function runNextFreeSpin() {
       if (retriggered) {
         setMessage(
           cappedRetrigger
-            ? `🔁 RETRIGGER! (spin cap reached) — multiplier now ${freeSpinMultiplier}x`
-            : `🔁 RETRIGGER! +${retriggerBonusSpins} spins — multiplier now ${freeSpinMultiplier}x`,
+            ? `🔁 RETRIGGER! (spin cap reached) — multiplier now ${fmtMult(freeSpinMultiplier)}x`
+            : `🔁 RETRIGGER! +${retriggerBonusSpins} spins — multiplier now ${fmtMult(freeSpinMultiplier)}x`,
           'scatter-msg'
         );
         playScatterSound();
       } else if (spinPayout > 0) {
-        setMessage(`Free Spin win: +${fmtCredits(spinPayout)} credits (×${freeSpinMultiplier})`, 'win-msg');
+        setMessage(`Free Spin win: +${fmtCredits(spinPayout)} credits (×${fmtMult(freeSpinMultiplier)})`, 'win-msg');
         playWinSound(Math.max(clusters.length, 1));
       } else {
         setMessage('Free Spin — no match.');
@@ -2547,6 +2700,13 @@ function endFreeSpins() {
   gridEl.classList.remove('freespin-active');
   cabinetFrameEl.classList.remove('freespin-active');
   freespinBannerEl.style.display = 'none';
+
+  // Revert any temporary Full House row bonus — recomputing from owned
+  // relics resets GRID_ROWS to its normal (non-Free-Spins) value.
+  if (modifiers.freeSpinRowBonus) {
+    modifiers = computeModifiers();
+  }
+
   renderStats();
 
   if (freeSpinTotalWin >= WATERFALL_WIN_THRESHOLD) {
