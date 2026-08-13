@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Big Spin! — v0.27</title>
+<title>The Big Spin! — v0.29</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -1267,6 +1267,18 @@
     <label>Sepia wash <span class="val" id="fWashVal">0</span></label>
     <input type="range" id="fWash" min="0" max="0.4" step="0.02" value="0">
   </div>
+
+  <div style="height:1px; background:#3a2f22; margin:12px 0 10px;"></div>
+  <h2 style="margin-bottom:8px;">REEL SMEAR</h2>
+
+  <div class="frow">
+    <label>Smear stretch <span class="val" id="fSmearScaleVal">0.7</span></label>
+    <input type="range" id="fSmearScale" min="0" max="2" step="0.1" value="0.7">
+  </div>
+  <div class="frow">
+    <label>Smear blur (px) <span class="val" id="fSmearBlurVal">7</span></label>
+    <input type="range" id="fSmearBlur" min="0" max="15" step="0.5" value="7">
+  </div>
 </div>
 
 <!-- Shop modal -->
@@ -2107,13 +2119,17 @@ function runReelAnimation(finalGrid, { winTiles = new Set(), scatterTiles = new 
   // back to a clean drawing right as the motion settles. Tied to the same
   // speed curve driving tickTimingFor, so it's strongest during the fast
   // cruise phase and fades to nothing by the final, crisp stopping tick.
+  // Peak scale/blur are read live from window.SMEAR_TUNING so the vintage
+  // filter panel's sliders can dial these in without a code change. Falls
+  // back to these confirmed-working-on-mobile defaults if unset.
   function getSmearForTick(colState, isFinalTick) {
+    const tuning = window.SMEAR_TUNING || { scaleMax: 0.7, blurMax: 7 };
     if (isFinalTick) return { scale: 1, blur: 0 };
-    if (sweatColumns.has(colState.col)) return { scale: 1.7, blur: 7 };
+    if (sweatColumns.has(colState.col)) return { scale: 1 + tuning.scaleMax, blur: tuning.blurMax };
     const progress = Math.min(1, colState.tickCount / colState.totalTicks);
     const eased = Math.pow(progress, 4);
     const smearAmount = 1 - eased; // strong early, fades to 0 near the stop
-    return { scale: 1 + 0.7 * smearAmount, blur: 3 * smearAmount };
+    return { scale: 1 + tuning.scaleMax * smearAmount, blur: tuning.blurMax * smearAmount };
   }
 
   function tickColumn(colState) {
@@ -2988,7 +3004,10 @@ window.addEventListener('resize', () => {
   // Jitter, scratch, and halftone removed per feedback (jitter hurt to look
   // at, halftone/scratch didn't read well). Grain, vignette, chromatic
   // aberration, and sepia wash stay adjustable while dialing in final art.
-  const state = { grain: 0.05, vig: 0.6, ab: 1, wash: 0 };
+  // smearScale/smearBlur control the reel-spin smear effect (a separate
+  // system from the vintage-film overlays, but tuned from the same panel).
+  const state = { grain: 0.05, vig: 0.6, ab: 1, wash: 0, smearScale: 0.7, smearBlur: 7 };
+  window.SMEAR_TUNING = { scaleMax: state.smearScale, blurMax: state.smearBlur };
 
   function resizeCanvas() {
     grainCv.width = window.innerWidth;
@@ -3007,6 +3026,8 @@ window.addEventListener('resize', () => {
     } else {
       filterWrapEl.style.filter = 'none';
     }
+    window.SMEAR_TUNING.scaleMax = state.smearScale;
+    window.SMEAR_TUNING.blurMax = state.smearBlur;
   }
 
   function drawGrain() {
@@ -3045,6 +3066,8 @@ window.addEventListener('resize', () => {
   bindRange('fVig', 'vig');
   bindRange('fAb', 'ab');
   bindRange('fWash', 'wash');
+  bindRange('fSmearScale', 'smearScale');
+  bindRange('fSmearBlur', 'smearBlur');
 
   function setFilterControls(vals) {
     Object.assign(state, vals);
