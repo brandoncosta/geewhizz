@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Big Spin! — v0.34</title>
+<title>The Big Spin! — v0.37</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -303,7 +303,7 @@
   .reel-ghost-layer {
     position: absolute;
     inset: 0;
-    z-index: 0;
+    z-index: 3;
     pointer-events: none;
     display: flex;
     flex-direction: column;
@@ -316,6 +316,7 @@
     align-items: center;
     justify-content: center;
     opacity: 0;
+    transform: translateY(-45%);
   }
 
   .reel-ghost-row img {
@@ -373,13 +374,14 @@
   }
 
   .symbol-img.symbol-settle {
-    animation: symbolSettle 0.24s ease-out;
+    animation: symbolSettle 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   @keyframes symbolSettle {
-    0% { transform: translateY(0); }
-    35% { transform: translateY(16%); }
-    100% { transform: translateY(0); }
+    0% { transform: translateY(0) scaleY(1); }
+    30% { transform: translateY(28%) scaleY(0.82); }
+    60% { transform: translateY(-7%) scaleY(1.1); }
+    100% { transform: translateY(0) scaleY(1); }
   }
 
   .message {
@@ -1299,16 +1301,16 @@
   <h2 style="margin-bottom:8px;">REEL SMEAR</h2>
 
   <div class="frow">
-    <label>Smear stretch <span class="val" id="fSmearScaleVal">0.7</span></label>
-    <input type="range" id="fSmearScale" min="0" max="2" step="0.1" value="0.7">
+    <label>Smear stretch <span class="val" id="fSmearScaleVal">0.5</span></label>
+    <input type="range" id="fSmearScale" min="0" max="2" step="0.1" value="0.5">
   </div>
   <div class="frow">
-    <label>Smear blur (px) <span class="val" id="fSmearBlurVal">7</span></label>
-    <input type="range" id="fSmearBlur" min="0" max="15" step="0.5" value="7">
+    <label>Smear blur (px) <span class="val" id="fSmearBlurVal">1.5</span></label>
+    <input type="range" id="fSmearBlur" min="0" max="15" step="0.5" value="1.5">
   </div>
   <div class="frow">
-    <label>Trail fade amount (%) <span class="val" id="fTrailFadeVal">35</span></label>
-    <input type="range" id="fTrailFade" min="0" max="100" step="5" value="35">
+    <label>Trail fade amount (%) <span class="val" id="fTrailFadeVal">5</span></label>
+    <input type="range" id="fTrailFade" min="0" max="100" step="5" value="5">
   </div>
 
   <div style="height:1px; background:#3a2f22; margin:12px 0 10px;"></div>
@@ -1316,15 +1318,15 @@
 
   <label style="display:flex; align-items:center; justify-content:space-between; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:#cbb98f; cursor:pointer; margin-bottom:10px;">
     Enable ghosting
-    <input type="checkbox" id="fGhostEnable" style="accent-color:#e8c988;">
+    <input type="checkbox" id="fGhostEnable" checked style="accent-color:#e8c988;">
   </label>
   <div class="frow">
-    <label>Ghost opacity <span class="val" id="fGhostOpacityVal">0.35</span></label>
-    <input type="range" id="fGhostOpacity" min="0" max="1" step="0.05" value="0.35">
+    <label>Ghost opacity <span class="val" id="fGhostOpacityVal">0.8</span></label>
+    <input type="range" id="fGhostOpacity" min="0" max="1" step="0.05" value="0.8">
   </div>
   <div class="frow">
-    <label>Ghost fade (ms) <span class="val" id="fGhostFadeVal">180</span></label>
-    <input type="range" id="fGhostFade" min="30" max="500" step="10" value="180">
+    <label>Ghost fade (ms) <span class="val" id="fGhostFadeVal">30</span></label>
+    <input type="range" id="fGhostFade" min="30" max="500" step="10" value="30">
   </div>
 </div>
 
@@ -3109,7 +3111,7 @@ window.addEventListener('resize', () => {
   // aberration, and sepia wash stay adjustable while dialing in final art.
   // smearScale/smearBlur control the reel-spin smear effect (a separate
   // system from the vintage-film overlays, but tuned from the same panel).
-  const state = { grain: 0.05, vig: 0.6, ab: 1, wash: 0, smearScale: 0.7, smearBlur: 7, trailFade: 35, ghostEnabled: false, ghostOpacity: 0.35, ghostFade: 180 };
+  const state = { grain: 0.05, vig: 0.6, ab: 1, wash: 0, smearScale: 0.5, smearBlur: 1.5, trailFade: 5, ghostEnabled: true, ghostOpacity: 0.8, ghostFade: 30 };
   window.SMEAR_TUNING = { scaleMax: state.smearScale, blurMax: state.smearBlur, trailFadePct: state.trailFade };
   window.GHOST_TUNING = { enabled: state.ghostEnabled, opacity: state.ghostOpacity, fadeMs: state.ghostFade };
 
