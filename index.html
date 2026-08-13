@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Big Spin! — v0.41</title>
+<title>The Big Spin! — v0.42</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -497,6 +497,23 @@
     border-radius: 10px;
     background: var(--red);
     box-shadow: 3px 3px 0 var(--ink);
+  }
+
+  button.skip-freespins-btn {
+    display: block;
+    width: 100%;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--ink);
+    background: var(--mustard-bright);
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    padding: 6px;
+    margin: -6px 0 12px;
+    cursor: pointer;
+    box-shadow: 2px 2px 0 var(--ink);
   }
 
   .grid.freespin-active {
@@ -1058,6 +1075,56 @@
     box-shadow: 0 0 0 var(--ink);
   }
 
+  .cashout-modal-card {
+    max-width: 340px;
+  }
+
+  .cashout-breakdown {
+    background: var(--paper-panel);
+    border: 3px solid var(--ink);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin: 12px 0;
+  }
+
+  .cashout-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    padding: 5px 0;
+    border-bottom: 1px dashed rgba(28,20,15,0.18);
+  }
+
+  .cashout-row:last-child { border-bottom: none; }
+
+  .cashout-row.cashout-total {
+    margin-top: 4px;
+    padding-top: 8px;
+    border-top: 2px solid var(--ink);
+    border-bottom: none;
+    font-family: 'Luckiest Guy', cursive;
+    font-size: 16px;
+    color: var(--red-dark);
+  }
+
+  .cashout-btn-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  .cashout-btn-row button.modal-btn {
+    font-size: 13px;
+    padding: 12px 16px;
+    flex: 1;
+  }
+
+  button.cashout-btn-keep {
+    background: var(--teal);
+  }
+
   .bigwin-overlay {
     background: rgba(28,20,15,0.75);
   }
@@ -1275,6 +1342,7 @@
       </div>
 
       <div class="freespin-banner" id="freespin-banner"></div>
+      <button class="skip-freespins-btn" id="skip-freespins-btn" style="display:none;">MAX HOUSE MONEY — SKIP TO CASH OUT</button>
 
       <div class="grid-wrap" id="grid-wrap"><div class="grid" id="grid"></div></div>
 
@@ -1462,6 +1530,23 @@
 </div>
 
 
+<div class="modal-overlay" id="cashout-modal">
+  <div class="modal-card cashout-modal-card">
+    <h2>🎉 QUOTA CLEARED!</h2>
+    <div class="cashout-breakdown">
+      <div class="cashout-row"><span>Base Reward</span><span id="cashout-base">0</span></div>
+      <div class="cashout-row"><span>House Money</span><span id="cashout-house">0</span></div>
+      <div class="cashout-row"><span>Spins Saved (<span id="cashout-spins-left-note">0</span> left)</span><span id="cashout-spins">0</span></div>
+      <div class="cashout-row cashout-total"><span>Total</span><span id="cashout-total">0</span></div>
+    </div>
+    <p class="rules-text">Cash out now, or spend another spin to chase more House Money — every spin you take costs 1 Spins Saved.</p>
+    <div class="cashout-btn-row">
+      <button class="modal-btn cashout-btn-cash" id="cashout-btn">CASH OUT</button>
+      <button class="modal-btn cashout-btn-keep" id="keep-spinning-btn">KEEP SPINNING</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="freespin-modal">
   <div class="modal-card">
     <h2 id="freespin-modal-title">🎉 YOU WON FREE SPINS!</h2>
@@ -1500,8 +1585,9 @@ const BOSS_QUOTA_MULTIPLIER = 1.6; // Boss Rounds demand 60% more than the norma
 // the bankroll gain for that round stays bounded.
 const ROUND_CLEAR_BASE_REWARD = 20;
 const ROUND_CLEAR_GROWTH_PER_ROUND = 4;   // small linear growth so rewards keep pace with rounds
-const ROUND_CLEAR_OVERSHOOT_RATE = 0.05;  // tiny bonus per credit scored beyond quota
-const ROUND_CLEAR_OVERSHOOT_CAP = 30;     // overshoot bonus can never exceed this
+const ROUND_CLEAR_OVERSHOOT_RATE = 0.05;  // tiny bonus per credit scored beyond quota ("House Money")
+const ROUND_CLEAR_OVERSHOOT_CAP = 30;     // House Money bonus can never exceed this
+const SPINS_SAVED_RATE = 1;               // bankroll per unused normal spin remaining at cash-out
 const SCATTER_TRIGGER_COUNT = 3;       // scatters needed on a base spin to trigger Free Spins
 const FREE_SPINS_AWARD = 8;            // free spins granted on trigger
 const FREE_SPIN_RETRIGGER_COUNT = 3;   // scatters needed during Free Spins to retrigger
@@ -1615,6 +1701,7 @@ let bankroll = 0;       // persists across the run, spent in the shop
 let roundProgress = 0;  // resets each round, compared against quota
 let spinsLeft = SPINS_PER_ROUND;
 let quota = QUOTA_BASE;
+let quotaClearedThisRound = false; // true once quota is met; drives the Cash Out / Keep Spinning choice
 let isSpinning = false;
 let grid = []; // flat array, length GRID_COLS*GRID_ROWS, values are symbol ids
 let currentBoard = null; // symbols actually on screen right now — spins continue from this, not a fresh random set
@@ -1669,6 +1756,15 @@ const cardTierNameEl = document.getElementById('card-tier-name');
 const cardXPFillEl = document.getElementById('card-xp-fill');
 const cardXPTextEl = document.getElementById('card-xp-text');
 const freespinBannerEl = document.getElementById('freespin-banner');
+const skipFreeSpinsBtnEl = document.getElementById('skip-freespins-btn');
+const cashoutModalEl = document.getElementById('cashout-modal');
+const cashoutBaseEl = document.getElementById('cashout-base');
+const cashoutHouseEl = document.getElementById('cashout-house');
+const cashoutSpinsEl = document.getElementById('cashout-spins');
+const cashoutTotalEl = document.getElementById('cashout-total');
+const cashoutSpinsLeftNoteEl = document.getElementById('cashout-spins-left-note');
+const cashoutBtn = document.getElementById('cashout-btn');
+const keepSpinningBtn = document.getElementById('keep-spinning-btn');
 const freespinModalEl = document.getElementById('freespin-modal');
 const freespinModalTitleEl = document.getElementById('freespin-modal-title');
 const beginFreeSpinsBtn = document.getElementById('begin-freespins-btn');
@@ -2470,16 +2566,26 @@ function computeQuota(r) {
   return Math.round(q);
 }
 
-function computeRoundClearReward(r, finalRoundProgress, finalQuota) {
+// Reward is now three separately-tracked parts, shown individually in the
+// Cash Out prompt: Base (scales with round), House Money (rewards how far
+// beyond quota the build scored — capped, so huge Free Spin runs can't
+// break the bankroll economy), and Spins Saved (rewards finishing fast).
+function computeBaseReward(r) {
+  return ROUND_CLEAR_BASE_REWARD + ROUND_CLEAR_GROWTH_PER_ROUND * r;
+}
+function computeHouseMoney(finalRoundProgress, finalQuota) {
   const overshoot = Math.max(0, finalRoundProgress - finalQuota);
-  const overshootBonus = Math.min(overshoot * ROUND_CLEAR_OVERSHOOT_RATE, ROUND_CLEAR_OVERSHOOT_CAP);
-  return Math.round(ROUND_CLEAR_BASE_REWARD + ROUND_CLEAR_GROWTH_PER_ROUND * r + overshootBonus);
+  return Math.min(overshoot * ROUND_CLEAR_OVERSHOOT_RATE, ROUND_CLEAR_OVERSHOOT_CAP);
+}
+function computeSpinsSavedBonus(spinsRemaining) {
+  return spinsRemaining * SPINS_SAVED_RATE;
 }
 
 function startNewRound() {
   spinsLeft = SPINS_PER_ROUND;
   quota = computeQuota(round);
   roundProgress = 0;
+  quotaClearedThisRound = false;
   renderStats();
   const bossTag = isBossRound(round) ? '👹 BOSS ROUND! ' : '';
   setMessage(`Round ${round} — ${bossTag}hit ${fmtCredits(quota)} credits in ${SPINS_PER_ROUND} spins.`);
@@ -2502,6 +2608,7 @@ function resetRun() {
   gridEl.classList.remove('freespin-active');
   cabinetFrameEl.classList.remove('freespin-active');
   freespinBannerEl.style.display = 'none';
+  skipFreeSpinsBtnEl.style.display = 'none';
   spinBtn.disabled = false;
   spinBtn.textContent = 'SPIN';
   shopFrameEl.classList.remove('active');
@@ -2824,6 +2931,7 @@ function doSpin() {
   spinPayout = Math.round(spinPayout * (1 + modifiers.globalPayMultiplier));
   spinPayout = Math.round(spinPayout * applyHotStreak(isWin));
   roundProgress += spinPayout;
+  if (roundProgress >= quota) quotaClearedThisRound = true;
   gainCardXP(XP_PER_SPIN);
 
   const triggersFreeSpins = scatterCount >= SCATTER_TRIGGER_COUNT;
@@ -2869,18 +2977,17 @@ function finishSpin({ spinPayout, clusters, triggersFreeSpins, scatterCount }) {
 }
 
 function checkRoundOutcome() {
-  if (roundProgress >= quota) {
+  if (roundProgress >= quota) quotaClearedThisRound = true;
+
+  if (quotaClearedThisRound) {
     spinBtn.disabled = true;
     setTimeout(() => {
-      playRoundWinSound();
-      const reward = computeRoundClearReward(round, roundProgress, quota);
-      bankroll += reward;
-      setMessage(`🎉 Quota cleared! Round ${round} complete. +${fmtCredits(reward)} credits earned.`, 'win-msg');
-      gainCardXP(XP_PER_ROUND_CLEAR);
-      renderStats();
-      setTimeout(() => {
-        openShop();
-      }, 1000);
+      if (spinsLeft <= 0) {
+        // No normal spins left to save — nothing left to decide, just resolve.
+        cashOutRound();
+      } else {
+        showCashOutPrompt();
+      }
     }, 300);
     return;
   }
@@ -2896,6 +3003,38 @@ function checkRoundOutcome() {
   }
 
   spinBtn.disabled = false;
+}
+
+function showCashOutPrompt() {
+  const base = computeBaseReward(round);
+  const house = computeHouseMoney(roundProgress, quota);
+  const spinsSaved = computeSpinsSavedBonus(spinsLeft);
+  const total = Math.round(base + house + spinsSaved);
+
+  cashoutBaseEl.textContent = fmtCredits(base);
+  cashoutHouseEl.textContent = fmtCredits(house);
+  cashoutSpinsEl.textContent = fmtCredits(spinsSaved);
+  cashoutTotalEl.textContent = fmtCredits(total);
+  cashoutSpinsLeftNoteEl.textContent = spinsLeft;
+
+  cashoutModalEl.classList.add('active');
+}
+
+function cashOutRound() {
+  const base = computeBaseReward(round);
+  const house = computeHouseMoney(roundProgress, quota);
+  const spinsSaved = computeSpinsSavedBonus(spinsLeft);
+  const total = Math.round(base + house + spinsSaved);
+
+  bankroll += total;
+  cashoutModalEl.classList.remove('active');
+  playRoundWinSound();
+  setMessage(`🎉 Round ${round} complete! +${fmtCredits(total)} credits earned.`, 'win-msg');
+  gainCardXP(XP_PER_ROUND_CLEAR);
+  renderStats();
+  setTimeout(() => {
+    openShop();
+  }, 1000);
 }
 
 // ---------- Free Spins (award modal + auto-play bonus mode) ----------
@@ -2931,6 +3070,20 @@ function beginFreeSpins() {
 function updateFreeSpinBanner() {
   freespinBannerEl.style.display = 'block';
   freespinBannerEl.textContent = `FREE SPINS — ${freeSpinsRemaining} LEFT — ${fmtMult(freeSpinMultiplier)}x MULTIPLIER`;
+
+  // Once quota is cleared AND House Money has hit its cap, further Free
+  // Spins can't add any more bankroll value — offer a way out of a long
+  // retrigger chain instead of forcing the player to watch it play out.
+  const houseMoneyMaxed = quotaClearedThisRound && computeHouseMoney(roundProgress, quota) >= ROUND_CLEAR_OVERSHOOT_CAP;
+  skipFreeSpinsBtnEl.style.display = houseMoneyMaxed ? 'block' : 'none';
+}
+
+function skipRemainingFreeSpins() {
+  // Let the current spin's animation finish naturally rather than yanking
+  // it away mid-flight — just stop granting further spins, so the next
+  // scheduled continuation sees none left and wraps up normally.
+  freeSpinsRemaining = 0;
+  skipFreeSpinsBtnEl.style.display = 'none';
 }
 
 function runNextFreeSpin() {
@@ -2992,6 +3145,7 @@ function runNextFreeSpin() {
   }
 
   roundProgress += spinPayout;
+  if (roundProgress >= quota) quotaClearedThisRound = true;
   freeSpinTotalWin += spinPayout;
 
   const scatterTiles = new Set();
@@ -3128,6 +3282,7 @@ function endFreeSpins() {
   gridEl.classList.remove('freespin-active');
   cabinetFrameEl.classList.remove('freespin-active');
   freespinBannerEl.style.display = 'none';
+  skipFreeSpinsBtnEl.style.display = 'none';
 
   // Revert any temporary Full House row bonus — recomputing from owned
   // relics resets GRID_ROWS to its normal (non-Free-Spins) value.
@@ -3163,6 +3318,12 @@ function endFreeSpins() {
 
 spinBtn.addEventListener('click', doSpin);
 beginFreeSpinsBtn.addEventListener('click', beginFreeSpins);
+cashoutBtn.addEventListener('click', cashOutRound);
+keepSpinningBtn.addEventListener('click', () => {
+  cashoutModalEl.classList.remove('active');
+  spinBtn.disabled = false;
+});
+skipFreeSpinsBtnEl.addEventListener('click', skipRemainingFreeSpins);
 resetBtn.addEventListener('click', () => {
   resetRun();
   menuModalEl.classList.remove('active');
