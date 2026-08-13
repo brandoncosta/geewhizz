@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Big Spin! — v0.26</title>
+<title>The Big Spin! — v0.27</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -2146,18 +2146,26 @@ function runReelAnimation(finalGrid, { winTiles = new Set(), scatterTiles = new 
     const animDuration = isFinalTick ? Math.round(shiftAnimMs * 1.6) : shiftAnimMs;
 
     const smear = getSmearForTick(colState, isFinalTick);
+    const smearTransform = `scaleY(${smear.scale})`;
+    const smearFilter = smear.blur > 0 ? `blur(${smear.blur}px)` : 'none';
 
-    // Set the starting (smeared) frame instantly, then transition toward the
-    // resolved, un-smeared shape over the same duration as the shift itself
-    // — the stretch and blur resolve exactly as the symbol lands.
-    strip.style.transition = 'none';
-    strip.style.transform = `translateY(-${colState.rowHeightPx}px) scaleY(${smear.scale})`;
-    strip.style.filter = smear.blur > 0 ? `blur(${smear.blur}px)` : 'none';
-    void strip.offsetHeight; // force reflow so the smeared starting frame actually paints
-
-    strip.style.transition = `transform ${animDuration}ms ${easing}, filter ${animDuration}ms ${easing}`;
-    strip.style.transform = 'translateY(0%) scaleY(1)';
-    strip.style.filter = 'none';
+    if (isFinalTick) {
+      // Resolve smear to fully crisp over the same (longer, stepped)
+      // duration as the mechanical stop — a comfortable window for the
+      // blur-clearing transition to actually render on any device, rather
+      // than depending on a sub-50ms transition like the old approach did.
+      strip.style.transition = `transform ${animDuration}ms ${easing}, filter ${animDuration}ms ${easing}`;
+      strip.style.transform = 'translateY(0%) scaleY(1)';
+      strip.style.filter = 'none';
+    } else {
+      // Smear is held as a STATIC filter/scale for the whole tick — only
+      // translateY (the shift itself) animates. This guarantees the blur is
+      // actually visible: it's just persistently applied while spinning
+      // fast, not something that has to successfully render mid-transition.
+      strip.style.transition = `transform ${animDuration}ms ${easing}`;
+      strip.style.transform = `translateY(0%) ${smearTransform}`;
+      strip.style.filter = smearFilter;
+    }
 
     setTimeout(() => {
       // Snap the strip back instantly and rotate every row's content down
@@ -2166,8 +2174,10 @@ function runReelAnimation(finalGrid, { winTiles = new Set(), scatterTiles = new 
       // rowEls[1..N], whatever N (GRID_ROWS) currently is.
       const contents = rowEls.map(r => r.innerHTML);
       strip.style.transition = 'none';
-      strip.style.transform = `translateY(-${colState.rowHeightPx}px) scaleY(1)`;
-      strip.style.filter = 'none';
+      strip.style.transform = isFinalTick
+        ? `translateY(-${colState.rowHeightPx}px) scaleY(1)`
+        : `translateY(-${colState.rowHeightPx}px) ${smearTransform}`;
+      strip.style.filter = isFinalTick ? 'none' : smearFilter;
       for (let r = 1; r < rowEls.length; r++) {
         rowEls[r].innerHTML = contents[r - 1];
       }
