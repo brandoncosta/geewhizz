@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Big Spin! — v0.38</title>
+<title>The Big Spin! — v0.41</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -737,9 +737,6 @@
   }
 
   .owned-relic-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     background: var(--tile-bg);
     border: 2px solid var(--ink);
     border-radius: 8px;
@@ -748,15 +745,31 @@
     box-shadow: 2px 2px 0 var(--ink);
   }
 
-  .dev-relic-row {
+  .owned-relic-row-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
+  }
+
+  .owned-relic-desc {
+    font-size: 10px;
+    line-height: 1.4;
+    color: var(--teal);
+    margin-top: 5px;
+  }
+
+  .dev-relic-row {
     background: var(--tile-bg);
     border: 2px solid var(--ink);
     border-radius: 8px;
     padding: 7px 10px;
     margin-bottom: 6px;
+  }
+
+  .dev-relic-row-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 
   .dev-relic-row .dev-relic-name {
@@ -771,6 +784,13 @@
     color: var(--red-dark);
     text-transform: uppercase;
     margin-left: 6px;
+  }
+
+  .dev-relic-desc {
+    font-size: 10px;
+    line-height: 1.4;
+    color: var(--teal);
+    margin-top: 4px;
   }
 
   .owned-relic-row .owned-relic-name {
@@ -1957,7 +1977,7 @@ const REEL_STOP_STAGGER_MS = 350;  // extra approx delay per reel after that
 const REEL_TICK_FAST_MS = 55;      // tick duration at the start of a spin (fast)
 const REEL_TICK_SLOW_MS = 210;     // tick duration right before a column stops (slower, heavier)
 const REEL_TICK_AVG_MS = (REEL_TICK_FAST_MS + REEL_TICK_SLOW_MS) / 2; // used to size total tick counts
-const REEL_SWEAT_EXTRA_MS = 900; // extra spin time for a "sweat" reel — builds suspense before it lands
+const REEL_SWEAT_EXTRA_MS = 2600; // extra spin time for a "sweat" reel — should read as roughly double a normal spin, building real tension (purely cosmetic: the outcome is already fixed, so this can't affect odds)
 
 // Builds one column's DOM (viewport + 4-row strip) and returns refs to it.
 function createReelColumn() {
@@ -2630,8 +2650,11 @@ function renderShopOwnedRelics() {
     const row = document.createElement('div');
     row.className = 'owned-relic-row';
     row.innerHTML = `
-      <span class="owned-relic-name">${relic.name}</span>
-      <button class="sell-btn">SELL (+${fmtCredits(refund)} cr)</button>
+      <div class="owned-relic-row-top">
+        <span class="owned-relic-name">${relic.name}</span>
+        <button class="sell-btn">SELL (+${fmtCredits(refund)} cr)</button>
+      </div>
+      <div class="owned-relic-desc">${relic.desc}</div>
     `;
     row.querySelector('.sell-btn').addEventListener('click', () => sellRelic(relicId));
     shopOwnedRelicsEl.appendChild(row);
@@ -2647,11 +2670,14 @@ function renderDevRelicList() {
     row.className = 'dev-relic-row';
     const owned = ownedRelics.includes(relic.id);
     row.innerHTML = `
-      <span>
-        <span class="dev-relic-name">${relic.name}</span>
-        <span class="dev-relic-tier">${relic.tier}</span>
-      </span>
-      <input type="checkbox" ${owned ? 'checked' : ''}>
+      <div class="dev-relic-row-top">
+        <span>
+          <span class="dev-relic-name">${relic.name}</span>
+          <span class="dev-relic-tier">${relic.tier}</span>
+        </span>
+        <input type="checkbox" ${owned ? 'checked' : ''}>
+      </div>
+      <div class="dev-relic-desc">${relic.desc}</div>
     `;
     row.querySelector('input').addEventListener('change', e => {
       const idx = ownedRelics.indexOf(relic.id);
