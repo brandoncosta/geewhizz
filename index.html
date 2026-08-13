@@ -2113,7 +2113,7 @@ function runReelAnimation(finalGrid, { winTiles = new Set(), scatterTiles = new 
     const progress = Math.min(1, colState.tickCount / colState.totalTicks);
     const eased = Math.pow(progress, 4);
     const smearAmount = 1 - eased; // strong early, fades to 0 near the stop
-    return { scale: 1 + 0.7 * smearAmount, blur: 7 * smearAmount };
+    return { scale: 1 + 0.7 * smearAmount, blur: 3 * smearAmount };
   }
 
   function tickColumn(colState) {
