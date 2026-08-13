@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Big Spin! — v0.37</title>
+<title>The Big Spin! — v0.38</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -748,6 +748,31 @@
     box-shadow: 2px 2px 0 var(--ink);
   }
 
+  .dev-relic-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--tile-bg);
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    padding: 7px 10px;
+    margin-bottom: 6px;
+  }
+
+  .dev-relic-row .dev-relic-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .dev-relic-row .dev-relic-tier {
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    color: var(--red-dark);
+    text-transform: uppercase;
+    margin-left: 6px;
+  }
+
   .owned-relic-row .owned-relic-name {
     font-size: 13px;
     font-weight: 700;
@@ -1397,6 +1422,17 @@
     <div class="shop-section-label"><span>PAYTABLE</span></div>
     <div class="paytable" id="paytable" style="margin-top:0;"></div>
 
+    <div style="height:1px; background:rgba(28,20,15,0.25); margin:14px 0 10px;"></div>
+
+    <label style="display:flex; align-items:center; justify-content:space-between; font-size:12px; font-weight:700; color:var(--ink); cursor:pointer; margin-bottom:8px;">
+      🛠️ Developer Mode
+      <input type="checkbox" id="dev-mode-toggle">
+    </label>
+    <div id="dev-relic-panel" style="display:none;">
+      <p class="rules-text" style="margin-top:0;">Toggle any relic on/off instantly for testing — bypasses cost and socket limits.</p>
+      <div id="dev-relic-list"></div>
+    </div>
+
     <div class="menu-danger-zone">
       <div class="shop-section-label"><span>DANGER ZONE</span></div>
       <p class="rules-text">This ends your current run for good — bankroll, relics, and progress are all lost.</p>
@@ -1582,6 +1618,9 @@ const resetBtn = document.getElementById('reset-btn');
 const menuBtn = document.getElementById('menu-btn');
 const menuModalEl = document.getElementById('menu-modal');
 const menuCloseBtn = document.getElementById('menu-close-btn');
+const devModeToggleEl = document.getElementById('dev-mode-toggle');
+const devRelicPanelEl = document.getElementById('dev-relic-panel');
+const devRelicListEl = document.getElementById('dev-relic-list');
 const cardOpenBtn = document.getElementById('card-open-btn');
 const cardModalEl = document.getElementById('card-modal');
 const cardCloseBtn = document.getElementById('card-close-btn');
@@ -2599,6 +2638,36 @@ function renderShopOwnedRelics() {
   });
 }
 
+// Developer Mode: lets any relic be toggled on/off directly for testing,
+// bypassing bankroll cost and the card's socket-count limit entirely.
+function renderDevRelicList() {
+  devRelicListEl.innerHTML = '';
+  RELICS.forEach(relic => {
+    const row = document.createElement('div');
+    row.className = 'dev-relic-row';
+    const owned = ownedRelics.includes(relic.id);
+    row.innerHTML = `
+      <span>
+        <span class="dev-relic-name">${relic.name}</span>
+        <span class="dev-relic-tier">${relic.tier}</span>
+      </span>
+      <input type="checkbox" ${owned ? 'checked' : ''}>
+    `;
+    row.querySelector('input').addEventListener('change', e => {
+      const idx = ownedRelics.indexOf(relic.id);
+      if (e.target.checked && idx === -1) {
+        ownedRelics.push(relic.id);
+      } else if (!e.target.checked && idx !== -1) {
+        ownedRelics.splice(idx, 1);
+      }
+      modifiers = computeModifiers();
+      renderCardPanel();
+      renderStats();
+    });
+    devRelicListEl.appendChild(row);
+  });
+}
+
 function sellRelic(relicId) {
   const relic = RELICS.find(r => r.id === relicId);
   const refund = Math.floor(relic.price / 2);
@@ -3072,8 +3141,15 @@ resetBtn.addEventListener('click', () => {
   resetRun();
   menuModalEl.classList.remove('active');
 });
-menuBtn.addEventListener('click', () => menuModalEl.classList.add('active'));
+menuBtn.addEventListener('click', () => {
+  menuModalEl.classList.add('active');
+  if (devModeToggleEl.checked) renderDevRelicList();
+});
 menuCloseBtn.addEventListener('click', () => menuModalEl.classList.remove('active'));
+devModeToggleEl.addEventListener('change', e => {
+  devRelicPanelEl.style.display = e.target.checked ? 'block' : 'none';
+  if (e.target.checked) renderDevRelicList();
+});
 cardOpenBtn.addEventListener('click', () => cardModalEl.classList.add('active'));
 cardCloseBtn.addEventListener('click', () => cardModalEl.classList.remove('active'));
 continueBtn.addEventListener('click', closeShopAndAdvance);
