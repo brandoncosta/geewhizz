@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Big Spin! — v0.30</title>
+<title>The Big Spin! — v0.34</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -293,6 +293,32 @@
   }
 
   .reel-row img.symbol-img {
+    width: 68%;
+    height: 68%;
+    object-fit: contain;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .reel-ghost-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .reel-ghost-row {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+  }
+
+  .reel-ghost-row img {
     width: 68%;
     height: 68%;
     object-fit: contain;
@@ -1281,8 +1307,24 @@
     <input type="range" id="fSmearBlur" min="0" max="15" step="0.5" value="7">
   </div>
   <div class="frow">
-    <label>Trail fade point (%) <span class="val" id="fTrailFadeVal">35</span></label>
-    <input type="range" id="fTrailFade" min="0" max="80" step="5" value="35">
+    <label>Trail fade amount (%) <span class="val" id="fTrailFadeVal">35</span></label>
+    <input type="range" id="fTrailFade" min="0" max="100" step="5" value="35">
+  </div>
+
+  <div style="height:1px; background:#3a2f22; margin:12px 0 10px;"></div>
+  <h2 style="margin-bottom:8px;">GHOST TRAIL</h2>
+
+  <label style="display:flex; align-items:center; justify-content:space-between; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:#cbb98f; cursor:pointer; margin-bottom:10px;">
+    Enable ghosting
+    <input type="checkbox" id="fGhostEnable" style="accent-color:#e8c988;">
+  </label>
+  <div class="frow">
+    <label>Ghost opacity <span class="val" id="fGhostOpacityVal">0.35</span></label>
+    <input type="range" id="fGhostOpacity" min="0" max="1" step="0.05" value="0.35">
+  </div>
+  <div class="frow">
+    <label>Ghost fade (ms) <span class="val" id="fGhostFadeVal">180</span></label>
+    <input type="range" id="fGhostFade" min="30" max="500" step="10" value="180">
   </div>
 </div>
 
@@ -1881,6 +1923,21 @@ function createReelColumn() {
   const viewport = document.createElement('div');
   viewport.className = 'reel-col';
 
+  // Ghost layer: fixed viewport-row slots (unlike the strip, these never
+  // scroll or scale) that briefly flash a fading afterimage of whatever was
+  // just visible in that slot before the rotation replaced it — a
+  // stroboscopic "multiples" trail, layered behind the live strip.
+  const ghostLayer = document.createElement('div');
+  ghostLayer.className = 'reel-ghost-layer';
+  const ghostRowEls = [];
+  for (let r = 0; r < GRID_ROWS; r++) {
+    const g = document.createElement('div');
+    g.className = 'reel-ghost-row';
+    ghostLayer.appendChild(g);
+    ghostRowEls.push(g);
+  }
+  viewport.appendChild(ghostLayer);
+
   const strip = document.createElement('div');
   strip.className = 'reel-strip';
 
@@ -1906,7 +1963,7 @@ function createReelColumn() {
   }
   viewport.appendChild(dividers);
 
-  return { viewport, strip, rowEls, dividerEls };
+  return { viewport, strip, rowEls, dividerEls, ghostRowEls };
 }
 
 // Computes one shared tile size (px) from the grid container's real
@@ -2129,16 +2186,16 @@ function runReelAnimation(finalGrid, { winTiles = new Set(), scatterTiles = new 
   // back to these confirmed-working-on-mobile defaults if unset.
   function getSmearForTick(colState, isFinalTick) {
     const tuning = window.SMEAR_TUNING || { scaleMax: 0.7, blurMax: 7 };
-    if (isFinalTick) return { scale: 1, blur: 0 };
-    if (sweatColumns.has(colState.col)) return { scale: 1 + tuning.scaleMax, blur: tuning.blurMax };
+    if (isFinalTick) return { scale: 1, blur: 0, amount: 0 };
+    if (sweatColumns.has(colState.col)) return { scale: 1 + tuning.scaleMax, blur: tuning.blurMax, amount: 1 };
     const progress = Math.min(1, colState.tickCount / colState.totalTicks);
     const eased = Math.pow(progress, 4);
     const smearAmount = 1 - eased; // strong early, fades to 0 near the stop
-    return { scale: 1 + tuning.scaleMax * smearAmount, blur: tuning.blurMax * smearAmount };
+    return { scale: 1 + tuning.scaleMax * smearAmount, blur: tuning.blurMax * smearAmount, amount: smearAmount };
   }
 
   function tickColumn(colState) {
-    const { strip, rowEls, totalTicks, viewport } = colState;
+    const { strip, rowEls, totalTicks, viewport, ghostRowEls } = colState;
     colState.tickCount += 1;
     const ticksRemaining = totalTicks - colState.tickCount; // after this tick
     const isFinalTick = ticksRemaining === 0;
@@ -2169,34 +2226,45 @@ function runReelAnimation(finalGrid, { winTiles = new Set(), scatterTiles = new 
     const smear = getSmearForTick(colState, isFinalTick);
     const smearTransform = `scaleY(${smear.scale})`;
     const smearFilter = smear.blur > 0 ? `blur(${smear.blur}px)` : 'none';
-    // Fades the stretched region to transparent going up (trailing edge),
-    // while the bottom (leading edge, about to land) stays fully opaque —
-    // this is what makes the stretch read as a directional motion trail
-    // rather than a symmetric blur in every direction.
-    const smearMask = smear.scale > 1.02
-      ? `linear-gradient(to top, black 0%, black ${(window.SMEAR_TUNING || { trailFadePct: 35 }).trailFadePct}%, transparent 100%)`
-      : 'none';
+    // Trailing rows (higher in the column) fade toward transparent, the
+    // leading row (bottom, about to land) stays fully opaque — applied as
+    // opacity on the row containers themselves, not a mask, so there's
+    // never anything "behind" being revealed. Content rotates through these
+    // fixed row positions each tick, so a symbol naturally fades in as it
+    // descends toward the bottom, exactly like the intended motion trail.
+    const trailFadeAmount = (((window.SMEAR_TUNING || {}).trailFadePct ?? 35) / 100) * smear.amount;
+    function applyTrailOpacity() {
+      for (let r = 1; r <= GRID_ROWS; r++) {
+        const positionFactor = GRID_ROWS > 1 ? (r - 1) / (GRID_ROWS - 1) : 1; // 0 at top, 1 at bottom
+        const rowOpacity = trailFadeAmount > 0 ? 1 - trailFadeAmount * (1 - positionFactor) : 1;
+        const img = rowEls[r].querySelector('img.symbol-img');
+        if (img) img.style.opacity = rowOpacity.toFixed(2);
+      }
+    }
+    function resetTrailOpacity() {
+      for (let r = 1; r <= GRID_ROWS; r++) {
+        const img = rowEls[r].querySelector('img.symbol-img');
+        if (img) img.style.opacity = '1';
+      }
+    }
 
     if (isFinalTick) {
       // Resolve smear to fully crisp over the same (longer, stepped)
       // duration as the mechanical stop — a comfortable window for the
-      // blur-clearing transition to actually render on any device, rather
-      // than depending on a sub-50ms transition like the old approach did.
+      // transition to actually render on any device.
       strip.style.transition = `transform ${animDuration}ms ${easing}, filter ${animDuration}ms ${easing}`;
       strip.style.transform = 'translateY(0%) scaleY(1)';
       strip.style.filter = 'none';
-      strip.style.maskImage = 'none';
-      strip.style.webkitMaskImage = 'none';
+      resetTrailOpacity();
     } else {
-      // Smear is held as a STATIC filter/scale/mask for the whole tick —
-      // only translateY (the shift itself) animates. This guarantees it's
+      // Smear is held as a STATIC filter/scale for the whole tick — only
+      // translateY (the shift itself) animates. This guarantees it's
       // actually visible: it's just persistently applied while spinning
       // fast, not something that has to successfully render mid-transition.
       strip.style.transition = `transform ${animDuration}ms ${easing}`;
       strip.style.transform = `translateY(0%) ${smearTransform}`;
       strip.style.filter = smearFilter;
-      strip.style.maskImage = smearMask;
-      strip.style.webkitMaskImage = smearMask;
+      applyTrailOpacity();
     }
 
     setTimeout(() => {
@@ -2210,10 +2278,27 @@ function runReelAnimation(finalGrid, { winTiles = new Set(), scatterTiles = new 
         ? `translateY(-${colState.rowHeightPx}px) scaleY(1)`
         : `translateY(-${colState.rowHeightPx}px) ${smearTransform}`;
       strip.style.filter = isFinalTick ? 'none' : smearFilter;
-      strip.style.maskImage = isFinalTick ? 'none' : smearMask;
-      strip.style.webkitMaskImage = isFinalTick ? 'none' : smearMask;
       for (let r = 1; r < rowEls.length; r++) {
         rowEls[r].innerHTML = contents[r - 1];
+      }
+      if (isFinalTick) resetTrailOpacity(); else applyTrailOpacity();
+
+      // Ghost trail: flash a fading afterimage of what was just in each
+      // slot before this rotation, on top of (or instead of) the
+      // stretch/fade smear above — independently toggleable for A/B testing.
+      const ghostTuning = window.GHOST_TUNING;
+      if (isFinalTick) {
+        ghostRowEls.forEach(g => { g.style.transition = 'none'; g.style.opacity = '0'; });
+      } else if (ghostTuning && ghostTuning.enabled) {
+        for (let r = 1; r <= GRID_ROWS; r++) {
+          const ghostEl = ghostRowEls[r - 1];
+          ghostEl.style.transition = 'none';
+          ghostEl.innerHTML = contents[r]; // content that was just replaced
+          ghostEl.style.opacity = String(ghostTuning.opacity);
+          void ghostEl.offsetHeight; // force reflow so the starting frame actually paints
+          ghostEl.style.transition = `opacity ${ghostTuning.fadeMs}ms ease-out`;
+          ghostEl.style.opacity = '0';
+        }
       }
 
       if (colState.tickCount >= colState.totalTicks) {
@@ -3024,8 +3109,9 @@ window.addEventListener('resize', () => {
   // aberration, and sepia wash stay adjustable while dialing in final art.
   // smearScale/smearBlur control the reel-spin smear effect (a separate
   // system from the vintage-film overlays, but tuned from the same panel).
-  const state = { grain: 0.05, vig: 0.6, ab: 1, wash: 0, smearScale: 0.7, smearBlur: 7, trailFade: 35 };
+  const state = { grain: 0.05, vig: 0.6, ab: 1, wash: 0, smearScale: 0.7, smearBlur: 7, trailFade: 35, ghostEnabled: false, ghostOpacity: 0.35, ghostFade: 180 };
   window.SMEAR_TUNING = { scaleMax: state.smearScale, blurMax: state.smearBlur, trailFadePct: state.trailFade };
+  window.GHOST_TUNING = { enabled: state.ghostEnabled, opacity: state.ghostOpacity, fadeMs: state.ghostFade };
 
   function resizeCanvas() {
     grainCv.width = window.innerWidth;
@@ -3047,6 +3133,9 @@ window.addEventListener('resize', () => {
     window.SMEAR_TUNING.scaleMax = state.smearScale;
     window.SMEAR_TUNING.blurMax = state.smearBlur;
     window.SMEAR_TUNING.trailFadePct = state.trailFade;
+    window.GHOST_TUNING.enabled = state.ghostEnabled;
+    window.GHOST_TUNING.opacity = state.ghostOpacity;
+    window.GHOST_TUNING.fadeMs = state.ghostFade;
   }
 
   function drawGrain() {
@@ -3088,6 +3177,13 @@ window.addEventListener('resize', () => {
   bindRange('fSmearScale', 'smearScale');
   bindRange('fSmearBlur', 'smearBlur');
   bindRange('fTrailFade', 'trailFade');
+  bindRange('fGhostOpacity', 'ghostOpacity');
+  bindRange('fGhostFade', 'ghostFade');
+
+  document.getElementById('fGhostEnable').addEventListener('change', e => {
+    state.ghostEnabled = e.target.checked;
+    syncStatic();
+  });
 
   function setFilterControls(vals) {
     Object.assign(state, vals);
