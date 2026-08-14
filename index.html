@@ -61,12 +61,12 @@
 
   .eyes-overlay {
     position: absolute;
-    /* Native alignment against the baked eye geometry in slot-newAsset 40.png.
-       The source gaze art is scaled so its eye centers match the baked eye centers. */
-    left: 31.64%;
-    top: 4.48%;
-    width: 36.74%;
-    height: 9.61%;
+    /* Pupil-only gaze layer aligned to the baked eye sockets.
+       Reduced from v8 so it no longer crowds the lower eye edges. */
+    left: 33.15%;
+    top: 5.00%;
+    width: 33.70%;
+    height: 8.75%;
     pointer-events: none;
     z-index: 4;
   }
@@ -90,29 +90,25 @@
     align-items: center;
   }
 
-  .value-relics { left: 25.7%; top: 58.20%; width: 9.2%; height: 3.0%; font-size: 3.2cqh; justify-content: center; }
-  .value-balance { left: 62.0%; top: 58.20%; width: 9.5%; height: 3.0%; font-size: 3.2cqh; justify-content: center; }
-  .value-round { left: 4.63%; top: 67.67%; width: 15.73%; height: 4.68%; font-size: 5.2cqh; justify-content: center; }
-  .value-spins { left: 74.00%; top: 67.67%; width: 17.58%; height: 4.68%; font-size: 5.2cqh; justify-content: center; }
+  .value-relics { left: 27.1%; top: 58.70%; width: 8.0%; height: 2.75%; font-size: 3.05cqh; justify-content: center; align-items: center; }
+  .value-balance { left: 78.0%; top: 60.85%; width: 13.5%; height: 2.85%; font-size: 3.05cqh; justify-content: center; align-items: center; }
+  .value-round { left: 5.15%; top: 67.95%; width: 22.55%; height: 6.00%; font-size: 5.0cqh; justify-content: center; align-items: center; }
+  .value-spins { left: 72.25%; top: 67.95%; width: 22.55%; height: 6.00%; font-size: 5.0cqh; justify-content: center; align-items: center; }
 
   .quota-overlay {
     position: absolute;
-    left: 24.98%;
-    top: 68.20%;
-    width: 44.40%;
-    height: 4.20%;
+    left: 30.0%;
+    top: 69.75%;
+    width: 40.0%;
+    height: 4.35%;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 3px;
+    gap: 0;
   }
 
   .quota-bar-track-real {
-    height: 22%;
-    border-radius: 6px;
-    background: rgba(0,0,0,0.6);
-    border: 1px solid rgba(255,176,32,0.4);
-    overflow: hidden;
+    display: none;
   }
 
   .quota-bar-fill-real {
@@ -127,8 +123,10 @@
     color: #ffb020;
     text-shadow: 0 0 6px rgba(255,176,32,0.85);
     letter-spacing: 1px;
-    font-size: 3.4cqh;
+    font-size: 3.25cqh;
+    line-height: 1;
     text-align: center;
+    margin: 0;
   }
 
   .quota-overlay.boss-active .quota-bar-fill-real {
@@ -137,10 +135,10 @@
 
   .reel-window {
     position: absolute;
-    left: 3.70%;
-    top: 24.21%;
-    width: 92.69%;
-    height: 30.97%;
+    left: 5.55%;
+    top: 27.35%;
+    width: 88.90%;
+    height: 29.15%;
   }
 
   .reel-state-img {
@@ -157,12 +155,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
+
+    /* The existing REEL_STATE_BOUNDS determine the correct top/bottom
+       of the tall reel rectangles for 3-, 4-, and 5-row states.
+       Clip ONLY the moving symbols/effects to that viewport. */
+    overflow: hidden;
   }
 
   .message-overlay {
     position: absolute;
     left: 5%;
-    top: 73.5%;
+    top: 75.05%;
     width: 90%;
     height: 3.2%;
     text-align: center;
@@ -347,7 +350,16 @@
   .reel-row.win {
     background: transparent;
     z-index: 1;
-    filter: drop-shadow(0 0 10px rgba(242,195,85,.95));
+    filter:
+      drop-shadow(0 0 4px rgba(255,206,92,1))
+      drop-shadow(0 0 10px rgba(242,195,85,.98))
+      drop-shadow(0 0 18px rgba(242,195,85,.72));
+  }
+
+  .reel-row.win img.symbol-img {
+    filter:
+      drop-shadow(0 0 3px rgba(255,224,138,1))
+      drop-shadow(0 0 8px rgba(242,195,85,.98));
   }
 
   .reel-row.scatter-hit {
@@ -2054,12 +2066,20 @@ function maybeStretchFrame() {
   const bounds = REEL_STATE_BOUNDS[key];
   const topPct = bounds.top * 100;
   const bottomPct = bounds.bottom * 100;
+
+  /* Keep a small visual buffer inside the tall reel rectangles.
+     REEL_STATE_BOUNDS still handles the changing 3/4/5-row artwork;
+     this inset only controls when moving symbols become visible. */
+  const SYMBOL_VERTICAL_INSET = 3.75;
+  const symbolTopPct = topPct + SYMBOL_VERTICAL_INSET;
+  const symbolBottomPct = bottomPct + SYMBOL_VERTICAL_INSET;
+
   /* Match the actual inner reel lanes in the supplied reel art.
      Do not use the outer bezel width as symbol space. */
   gridBodyEl.style.left = '4.82%';
   gridBodyEl.style.width = '90.36%';
-  gridBodyEl.style.top = topPct + '%';
-  gridBodyEl.style.height = (100 - topPct - bottomPct) + '%';
+  gridBodyEl.style.top = symbolTopPct + '%';
+  gridBodyEl.style.height = (100 - symbolTopPct - symbolBottomPct) + '%';
   lastRenderedGridRows = GRID_ROWS;
 }
 
