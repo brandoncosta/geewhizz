@@ -5,9 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Big Spin! — v0.42-wild</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=VT323&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=VT323&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
+    --font-display: 'Luckiest Guy', cursive;
+    --font-ui: 'Oswald', sans-serif;
+    --font-led: 'VT323', monospace;
+    --led-amber: #ffb020;
+    --led-glow: 0 0 6px rgba(255,176,32,0.85), 0 0 2px rgba(255,220,150,0.9);
     --paper: #f1e4c4;
     --paper-panel: #e8d7ab;
     --ink: #1c140f;
@@ -33,7 +38,7 @@
   body {
     margin: 0;
     background: #000;
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: var(--font-ui);
     color: var(--ink);
     display: flex;
     justify-content: center;
@@ -79,7 +84,7 @@
 
   .value-overlay {
     position: absolute;
-    font-family: 'VT323', monospace;
+    font-family: var(--font-led);
     color: #ffb020;
     text-shadow: 0 0 6px rgba(255,176,32,0.85), 0 0 2px rgba(255,220,150,0.9);
     letter-spacing: 1px;
@@ -119,7 +124,7 @@
   }
 
   .value-quota-text {
-    font-family: 'VT323', monospace;
+    font-family: var(--font-led);
     color: #ffb020;
     text-shadow: 0 0 6px rgba(255,176,32,0.85);
     letter-spacing: 1px;
@@ -169,7 +174,7 @@
     width: 90%;
     height: 3.2%;
     text-align: center;
-    font-family: 'Luckiest Guy', cursive;
+    font-family: var(--font-display);
     font-size: 2.4cqh;
     letter-spacing: 0.5px;
     color: var(--mustard-bright);
@@ -189,7 +194,7 @@
     top: 77.0%;
     width: 80%;
     height: 2.6%;
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: var(--font-ui);
     font-size: 1.5cqh;
     font-weight: 700;
     letter-spacing: 0.5px;
@@ -209,7 +214,7 @@
     height: 3.2%;
     display: none;
     text-align: center;
-    font-family: 'Luckiest Guy', cursive;
+    font-family: var(--font-display);
     font-size: 2cqh;
     letter-spacing: 0.5px;
     color: var(--cream);
@@ -344,7 +349,7 @@
     color: var(--cream);
     border: 2px solid var(--ink);
     border-radius: 999px;
-    font-family: 'Luckiest Guy', cursive;
+    font-family: var(--font-display);
     font-size: 0.32em;
     padding: 2px 6px;
     box-shadow: 2px 2px 0 var(--ink);
@@ -447,7 +452,7 @@
   }
 
   button.reset-btn {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: var(--font-ui);
     font-size: 12px;
     font-weight: 700;
     background: var(--red);
@@ -470,7 +475,7 @@
   }
 
   .paytable h2 {
-    font-family: 'Luckiest Guy', cursive;
+    font-family: var(--font-display);
     font-size: 13px;
     letter-spacing: 1px;
     color: var(--red);
@@ -578,7 +583,7 @@
   }
 
   .card-panel h2 {
-    font-family: 'Luckiest Guy', cursive;
+    font-family: var(--font-display);
     font-size: 13px;
     letter-spacing: 1px;
     color: var(--red);
@@ -648,7 +653,7 @@
   }
 
   .shop-header .shop-title {
-    font-family: 'Luckiest Guy', cursive;
+    font-family: var(--font-display);
     font-size: 20px;
     color: var(--red);
     -webkit-text-stroke: 1px var(--ink);
@@ -674,14 +679,14 @@
   }
 
   .shop-bankroll-label {
-    font-family: 'Luckiest Guy', cursive;
+    font-family: var(--font-display);
     font-size: 12px;
     letter-spacing: 1px;
     color: var(--ink);
   }
 
   .shop-bankroll-value {
-    font-family: 'Luckiest Guy', cursive;
+    font-family: var(--font-display);
     font-size: 18px;
     color: var(--ink);
   }
@@ -697,7 +702,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-family: 'Luckiest Guy', cursive;
+    font-family: var(--font-display);
     font-size: 12px;
     letter-spacing: 1px;
     color: var(--red-dark);
@@ -705,7 +710,7 @@
   }
 
   .socket-badge {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: var(--font-ui);
     font-size: 11px;
     font-weight: 700;
     color: var(--cream);
@@ -716,7 +721,7 @@
   }
 
   button.reroll-btn {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: var(--font-ui);
     font-size: 11px;
     font-weight: 700;
     background: var(--cream);
@@ -809,7 +814,7 @@
   }
 
   button.sell-btn {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: var(--font-ui);
     font-size: 11px;
     font-weight: 700;
     background: var(--red);
@@ -826,7 +831,7 @@
     text-align: center;
     margin: 4px 0 14px;
     color: var(--red-dark);
-    font-family: 'Luckiest Guy', cursive;
+    font-family: var(--font-display);
     font-size: 11px;
     letter-spacing: 2px;
   }
@@ -874,7 +879,7 @@
   }
 
   .offer-name {
-    font-family: 'Luckiest Guy', cursive;
+    font-family: var(--font-display);
     font-size: 14px;
     color: var(--ink);
   }
@@ -899,13 +904,13 @@
   }
 
   .offer-price {
-    font-family: 'Luckiest Guy', cursive;
+    font-family: var(--font-display);
     font-size: 14px;
     color: var(--red-dark);
   }
 
   button.buy-btn {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: var(--font-ui);
     font-size: 12px;
     font-weight: 700;
     background: var(--teal);
@@ -933,7 +938,7 @@
   }
 
   button.continue-btn {
-    font-family: 'Luckiest Guy', cursive;
+    font-family: var(--font-display);
     font-size: 15px;
     letter-spacing: 1px;
     background: var(--cream);
@@ -1013,7 +1018,7 @@
   }
 
   .menu-title {
-    font-family: 'Luckiest Guy', cursive;
+    font-family: var(--font-display);
     font-size: 18px;
     color: var(--red);
     -webkit-text-stroke: 1px var(--ink);
@@ -1033,7 +1038,7 @@
   }
 
   .modal-card h2 {
-    font-family: 'Luckiest Guy', cursive;
+    font-family: var(--font-display);
     font-size: 24px;
     color: var(--red);
     -webkit-text-stroke: 1px var(--ink);
@@ -1049,7 +1054,7 @@
   }
 
   button.modal-btn {
-    font-family: 'Luckiest Guy', cursive;
+    font-family: var(--font-display);
     font-size: 16px;
     letter-spacing: 1px;
     background: var(--red);
@@ -1096,7 +1101,7 @@
     padding-top: 8px;
     border-top: 2px solid var(--ink);
     border-bottom: none;
-    font-family: 'Luckiest Guy', cursive;
+    font-family: var(--font-display);
     font-size: 16px;
     color: var(--red-dark);
   }
@@ -1151,7 +1156,7 @@
   }
 
   .bigwin-tier {
-    font-family: 'Luckiest Guy', cursive;
+    font-family: var(--font-display);
     color: var(--red);
     -webkit-text-stroke: 2px var(--ink);
     text-shadow: 4px 4px 0 var(--ink);
@@ -1166,7 +1171,7 @@
   }
 
   .bigwin-amount {
-    font-family: 'Luckiest Guy', cursive;
+    font-family: var(--font-display);
     color: var(--cream);
     -webkit-text-stroke: 1.5px var(--ink);
     text-shadow: 3px 3px 0 var(--ink);
@@ -1176,6 +1181,153 @@
   .bigwin-amount.tier-fountain {
     font-size: 54px;
   }
+  /* ---------- Modal / shop theming ----------
+     Everything outside the reels used to be flat vector stickers in a
+     modern sans. These rules pull the panels back onto the cabinet's own
+     language: playbill paper with a double rule, condensed poster type,
+     and every number rendered as amber LED like the machine's readouts. */
+
+  .modal-overlay {
+    background: rgba(18,12,8,0.78);
+    backdrop-filter: blur(2px);
+  }
+
+  .modal-card {
+    background:
+      linear-gradient(rgba(255,255,255,0.10), rgba(28,20,15,0.06)),
+      var(--paper);
+    box-shadow:
+      inset 0 0 0 2px var(--paper),
+      inset 0 0 0 4px rgba(28,20,15,0.30),
+      6px 6px 0 var(--ink),
+      0 14px 34px rgba(0,0,0,0.55);
+  }
+
+  .modal-card h2,
+  .menu-title,
+  .shop-header .shop-title {
+    text-shadow: 2px 2px 0 rgba(28,20,15,0.30);
+  }
+
+  .modal-card p,
+  .rules-text,
+  .offer-desc,
+  .owned-relic-desc {
+    font-weight: 400;
+    letter-spacing: 0.2px;
+    line-height: 1.55;
+  }
+
+  .offer-tier,
+  .relic-chip .tier-tag,
+  .shop-header .shop-sub,
+  .card-panel .empty,
+  .socket-badge {
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  /* Numbers read as machine output, not as body copy. */
+  .shop-bankroll-value,
+  .offer-price,
+  .card-xp-text,
+  .cashout-row.cashout-total,
+  .bigwin-amount {
+    font-family: var(--font-led);
+    color: var(--led-amber);
+    text-shadow: var(--led-glow);
+    letter-spacing: 1px;
+  }
+
+  .shop-bankroll-box {
+    background: linear-gradient(180deg, #241a12, #150f0a);
+    border-color: var(--ink);
+  }
+
+  .shop-bankroll-label {
+    color: var(--mustard-bright);
+  }
+
+  .shop-bankroll-value {
+    font-size: 24px;
+  }
+
+  .offer-price {
+    font-size: 20px;
+    text-shadow: none;
+    color: var(--red-dark);
+  }
+
+  .cashout-row.cashout-total {
+    text-shadow: none;
+    color: var(--red-dark);
+    font-size: 20px;
+  }
+
+  .card-xp-text { font-size: 14px; text-shadow: none; color: var(--teal-dark); }
+
+  .bigwin-amount {
+    color: var(--mustard-bright);
+    text-shadow: 3px 3px 0 var(--ink), 0 0 24px rgba(255,176,32,0.7);
+  }
+
+  .offer-card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.35), rgba(28,20,15,0.04));
+  }
+
+  /* One shared press behaviour for every raised button in the game. */
+  button.buy-btn,
+  button.sell-btn,
+  button.reroll-btn,
+  button.continue-btn,
+  button.reset-btn,
+  button.modal-close-btn,
+  .skip-freespins-overlay {
+    font-family: var(--font-ui);
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    transition: transform 0.08s ease, box-shadow 0.08s ease;
+  }
+
+  button.buy-btn:active:not(:disabled),
+  button.sell-btn:active,
+  button.reroll-btn:active:not(:disabled),
+  button.continue-btn:active,
+  button.reset-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0 0 0 var(--ink);
+  }
+
+  /* The Free Spins award popup borrows the cabinet's own red/gold pulse
+     so the modal reads as the machine lighting up, not a separate dialog. */
+  #freespin-modal .modal-card {
+    border-color: var(--red);
+    animation: freespinModalPulse 1.3s ease-in-out infinite;
+  }
+
+  @keyframes freespinModalPulse {
+    0%, 100% {
+      box-shadow:
+        inset 0 0 0 2px var(--paper),
+        inset 0 0 0 4px rgba(200,53,42,0.45),
+        6px 6px 0 var(--ink),
+        0 0 30px 6px rgba(200,53,42,0.55);
+    }
+    50% {
+      box-shadow:
+        inset 0 0 0 2px var(--paper),
+        inset 0 0 0 4px rgba(242,195,85,0.55),
+        6px 6px 0 var(--ink),
+        0 0 42px 10px rgba(242,195,85,0.7);
+    }
+  }
+
+  #freespin-modal .modal-card h2 {
+    color: var(--red);
+    -webkit-text-stroke: 1px var(--ink);
+  }
+
   /* ---------- Vintage film filter rig ---------- */
   #filterWrap {
     position: relative;
@@ -1228,10 +1380,11 @@
     box-shadow: 3px 3px 0 var(--ink);
     font-size: 18px;
     cursor: pointer;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
   }
+  #filterFab.dev-visible { display: flex; }
 
   #filterPanel {
     position: fixed;
@@ -1252,7 +1405,7 @@
   #filterPanel.open { display: block; }
 
   #filterPanel h2 {
-    font-family: 'Luckiest Guy', cursive;
+    font-family: var(--font-display);
     font-size: 13px;
     color: #e8c988;
     margin: 0 0 10px;
@@ -1527,7 +1680,7 @@
 
 <div class="modal-overlay" id="freespin-modal">
   <div class="modal-card">
-    <h2 id="freespin-modal-title">🎉 YOU WON FREE SPINS!</h2>
+    <h2 id="freespin-modal-title">FREE SPINS!</h2>
     <p>Sit back and watch the reels roll.</p>
     <button class="modal-btn" id="begin-freespins-btn">BEGIN FREE SPINS</button>
   </div>
@@ -1764,6 +1917,8 @@ const menuBtn = document.getElementById('menu-btn');
 const menuModalEl = document.getElementById('menu-modal');
 const menuCloseBtn = document.getElementById('menu-close-btn');
 const devModeToggleEl = document.getElementById('dev-mode-toggle');
+const filterFabEl = document.getElementById('filterFab');
+const filterPanelEl = document.getElementById('filterPanel');
 const devRelicPanelEl = document.getElementById('dev-relic-panel');
 const devRelicListEl = document.getElementById('dev-relic-list');
 const cardOpenBtn = document.getElementById('card-open-btn');
@@ -3442,7 +3597,7 @@ function showFreeSpinAwardModal(scatterCount = SCATTER_TRIGGER_COUNT) {
   freeSpinsTotalGranted = freeSpinsRemaining;
   freeSpinMultiplier = FREE_SPIN_START_MULT + (modifiers.freeSpinStartMultiplierBonus || 0);
   freeSpinTotalWin = 0;
-  freespinModalTitleEl.textContent = `🎉 YOU WON ${freeSpinsRemaining} FREE SPINS!`;
+  freespinModalTitleEl.textContent = `${freeSpinsRemaining} FREE SPINS!`;
   freespinModalEl.classList.add('active');
 }
 
@@ -3737,6 +3892,8 @@ menuBtn.addEventListener('click', () => {
 menuCloseBtn.addEventListener('click', () => menuModalEl.classList.remove('active'));
 devModeToggleEl.addEventListener('change', e => {
   devRelicPanelEl.style.display = e.target.checked ? 'block' : 'none';
+  filterFabEl.classList.toggle('dev-visible', e.target.checked);
+  if (!e.target.checked) filterPanelEl.classList.remove('open');
   if (e.target.checked) renderDevRelicList();
 });
 cardOpenBtn.addEventListener('click', () => cardModalEl.classList.add('active'));
@@ -3875,8 +4032,6 @@ window.addEventListener('resize', () => {
     });
   });
 
-  const filterFabEl = document.getElementById('filterFab');
-  const filterPanelEl = document.getElementById('filterPanel');
   filterFabEl.addEventListener('click', () => filterPanelEl.classList.toggle('open'));
 
   syncStatic();
