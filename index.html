@@ -1662,6 +1662,27 @@ const RELICS = [
   { id: 'double_decker', name: 'Double Decker', tier: 'Rare',     price: 55, unlockRound: 7, desc: 'Adds 1 row to the reels — more tiles, bigger clusters. Removed if this relic is swapped out.', apply: { rowBonus: 1 } },
   { id: 'full_house',    name: 'Full House',    tier: 'Rare',     price: 48, unlockRound: 8, desc: 'Free Spins begin with 1 extra row on the board — reverts once Free Spins ends.', apply: { freeSpinRowBonus: 1 } },
   { id: 'loosen_up',     name: 'Loosen Up',     tier: 'Rare',     price: 58, unlockRound: 10, desc: 'Clusters only need 3 connected tiles to pay out, instead of 4.', apply: { minClusterReduction: 1 } },
+
+  { id: 'corner_pocket',  name: 'Corner Pocket',  tier: 'Common',   price: 18, unlockRound: 1, desc: `Winning tiles in the four corners pay an extra +${disp(1)} credits.`, apply: { cornerPayBonus: 1 } },
+  { id: 'big_spread',     name: 'Big Spread',     tier: 'Common',   price: 21, unlockRound: 1, desc: 'Clusters spanning 3 or more reels pay +25%.', apply: { spreadPercent: { minCols: 3, percent: 0.25 } } },
+  { id: 'so_close',       name: 'So Close',       tier: 'Common',   price: 16, unlockRound: 1, desc: `Landing exactly 2 Coins awards +${disp(2)} credits.`, apply: { nearMissCredits: 2 } },
+
+  { id: 'center_stage',   name: 'Center Stage',   tier: 'Uncommon', price: 27, unlockRound: 2, desc: `Winning tiles on the center reel pay an extra +${disp(2)} credits.`, apply: { centerColumnPayBonus: 2 } },
+  { id: 'big_bunch',      name: 'Big Bunch',      tier: 'Uncommon', price: 29, unlockRound: 2, desc: `Clusters of 6 or more tiles pay a +${disp(5)} credit bonus.`, apply: { clusterSizeBonus: { minSize: 6, credits: 5 } } },
+  { id: 'wild_thing',     name: 'Wild Thing',     tier: 'Uncommon', price: 32, unlockRound: 3, desc: `Each Wild in a winning cluster pays an extra +${disp(2)} credits.`, apply: { wildPayBonus: 2 } },
+  { id: 'rain_check',     name: 'Rain Check',     tier: 'Uncommon', price: 30, unlockRound: 3, desc: 'Landing exactly 2 Coins makes Coins 60% more likely on your next spin.', apply: { nearMissCoinBoost: 0.6 } },
+  { id: 'straight_shooter', name: 'Straight Shooter', tier: 'Uncommon', price: 34, unlockRound: 4, desc: 'A cluster with 4 or more tiles in a straight line pays +50%.', apply: { straightLinePercent: { minRun: 4, percent: 0.5 } } },
+  { id: 'on_tilt',        name: 'On Tilt',        tier: 'Uncommon', price: 33, unlockRound: 4, desc: 'After 3 losing spins in a row, your next spin is guaranteed a Wild.', apply: { onTiltThreshold: 3 } },
+  { id: 'chain_gang',     name: 'Chain Gang',     tier: 'Rare',     price: 50, unlockRound: 5, desc: 'Clusters can connect diagonally, but need 1 more tile to pay.', apply: { diagonalClusters: true, minClusterReduction: -1 } },
+  { id: 'partners_crime', name: 'Partners in Crime', tier: 'Rare', price: 48, unlockRound: 6, desc: 'Devil and Seven can form clusters together.', apply: { mixedGroup: ['bar', 'seven'] } },
+  { id: 'across_board',   name: 'Across the Board', tier: 'Rare',   price: 46, unlockRound: 6, desc: 'A cluster touching both the first and last reel gets a 2x multiplier.', apply: { acrossBoardMult: 2 } },
+  { id: 'packed_house',   name: 'Packed House',   tier: 'Rare',     price: 44, unlockRound: 6, desc: `Clusters containing a 2x2 block pay a +${disp(4)} credit bonus.`, apply: { blockBonus: 4 } },
+  { id: 'wild_card',      name: 'Wild Card',      tier: 'Rare',     price: 52, unlockRound: 7, desc: 'Wilds have a 20% chance to land as 2x Wilds during normal spins.', apply: { baseGameWildMultChance: 0.2 } },
+  { id: 'lucky_seven',    name: 'Lucky Seven',    tier: 'Rare',     price: 47, unlockRound: 8, desc: 'A cluster of 6 or more Sevens pays 3x.', apply: { exactClusterMult: { symbol: 'seven', size: 6, mult: 3, atLeast: true } } },
+  { id: 'high_stakes',    name: 'High Stakes',    tier: 'Rare',     price: 54, unlockRound: 8, desc: 'Seven pays 75% more and Devil 50% more. Bomb and Cat pay 20% less.', apply: { symbolPayMultiplier: { seven: 1.75, bar: 1.5, cherry: 0.8, bell: 0.8 } } },
+  { id: 'deal_with_it',   name: 'Deal With It',   tier: 'Rare',     price: 56, unlockRound: 9, desc: 'Devil clusters pay 2x, but every other symbol pays 10% less.', apply: { symbolPayMultiplier: { bar: 2, cherry: 0.9, bell: 0.9, seven: 0.9 } } },
+  { id: 'crowded_house',  name: 'Crowded House',  tier: 'Rare',     price: 57, unlockRound: 9, desc: 'Adds 1 row to the reels, but Coins are 20% less likely to land.', apply: { rowBonus: 1, weightMultiplier: { scatter: 0.8 } } },
+  { id: 'all_or_nothing', name: 'All or Nothing', tier: 'Rare',     price: 58, unlockRound: 10, desc: 'Minimum-size clusters no longer pay, but every larger cluster pays 2x.', apply: { allOrNothing: 2 } },
 ];
 
 // symbol id -> { icon, pay (per tile in a paying cluster), weight (draw chance), clusterable }
@@ -1713,6 +1734,9 @@ let grid = []; // flat array, length GRID_COLS*GRID_ROWS, values are symbol ids
 let wildMultipliers = {}; // tile index -> multiplier, only set where grid[i] === 'wild'
 let currentBoard = null; // symbols actually on screen right now — spins continue from this, not a fresh random set
 let winStreak = 0; // consecutive winning spins (base game and Free Spins both count); resets on a non-winning spin
+let lossStreak = 0;         // consecutive non-winning spins, drives On Tilt
+let pendingCoinBoost = 0;   // extra Coin weight for the next spin only, from Rain Check
+let forceWildNextSpin = false; // On Tilt has armed a guaranteed Wild for the next spin
 let ownedRelics = [];   // array of relic ids currently socketed in the card
 let rerollCount = 0;    // resets each time the shop opens; drives escalating reroll price
 let shopOffers = [];    // current shop's 3 relic offers
@@ -1838,6 +1862,23 @@ function computeModifiers() {
     hotStreak: false,
     roundScalingCreditsBase: 0,
     roundScalingCreditsPerRound: 0,
+    cornerPayBonus: 0,
+    centerColumnPayBonus: 0,
+    wildPayBonus: 0,
+    clusterSizeBonus: null,
+    blockBonus: 0,
+    spreadPercent: null,
+    straightLinePercent: null,
+    acrossBoardMult: 0,
+    exactClusterMult: null,
+    symbolPayMultiplier: {},
+    allOrNothing: 0,
+    diagonalClusters: false,
+    mixedGroups: [],
+    nearMissCredits: 0,
+    nearMissCoinBoost: 0,
+    onTiltThreshold: 0,
+    baseGameWildMultChance: 0,
   };
   const tierBonus = getCardTierBonus(); // scales magnitude-type effects only
 
@@ -1904,6 +1945,68 @@ function computeModifiers() {
     if (a.roundScalingCreditsPerRound) {
       mods.roundScalingCreditsPerRound += a.roundScalingCreditsPerRound;
     }
+    if (a.cornerPayBonus) {
+      mods.cornerPayBonus += a.cornerPayBonus * (1 + tierBonus);
+    }
+    if (a.centerColumnPayBonus) {
+      mods.centerColumnPayBonus += a.centerColumnPayBonus * (1 + tierBonus);
+    }
+    if (a.wildPayBonus) {
+      mods.wildPayBonus += a.wildPayBonus * (1 + tierBonus);
+    }
+    if (a.clusterSizeBonus) {
+      mods.clusterSizeBonus = {
+        minSize: a.clusterSizeBonus.minSize,
+        credits: (mods.clusterSizeBonus ? mods.clusterSizeBonus.credits : 0) + a.clusterSizeBonus.credits * (1 + tierBonus),
+      };
+    }
+    if (a.blockBonus) {
+      mods.blockBonus += a.blockBonus * (1 + tierBonus);
+    }
+    if (a.spreadPercent) {
+      mods.spreadPercent = {
+        minCols: a.spreadPercent.minCols,
+        percent: (mods.spreadPercent ? mods.spreadPercent.percent : 0) + a.spreadPercent.percent * (1 + tierBonus),
+      };
+    }
+    if (a.straightLinePercent) {
+      mods.straightLinePercent = {
+        minRun: a.straightLinePercent.minRun,
+        percent: (mods.straightLinePercent ? mods.straightLinePercent.percent : 0) + a.straightLinePercent.percent * (1 + tierBonus),
+      };
+    }
+    if (a.acrossBoardMult) {
+      mods.acrossBoardMult = Math.max(mods.acrossBoardMult, a.acrossBoardMult);
+    }
+    if (a.exactClusterMult) {
+      mods.exactClusterMult = a.exactClusterMult;
+    }
+    if (a.symbolPayMultiplier) {
+      Object.entries(a.symbolPayMultiplier).forEach(([sym, mult]) => {
+        mods.symbolPayMultiplier[sym] = (mods.symbolPayMultiplier[sym] || 1) * mult;
+      });
+    }
+    if (a.allOrNothing) {
+      mods.allOrNothing = a.allOrNothing;
+    }
+    if (a.diagonalClusters) {
+      mods.diagonalClusters = true;
+    }
+    if (a.mixedGroup) {
+      mods.mixedGroups.push(a.mixedGroup);
+    }
+    if (a.nearMissCredits) {
+      mods.nearMissCredits += a.nearMissCredits * (1 + tierBonus);
+    }
+    if (a.nearMissCoinBoost) {
+      mods.nearMissCoinBoost += a.nearMissCoinBoost;
+    }
+    if (a.onTiltThreshold) {
+      mods.onTiltThreshold = a.onTiltThreshold;
+    }
+    if (a.baseGameWildMultChance) {
+      mods.baseGameWildMultChance += a.baseGameWildMultChance;
+    }
   });
 
   // Single source of truth: GRID_ROWS always reflects currently-socketed
@@ -1967,14 +2070,14 @@ function playBustSound() {
 }
 
 // ---------- Grid generation ----------
-// Buffalo-style: every Wild carries its own random multiplier, revealed
-// when it lands. If a cluster contains multiple wilds, their multipliers
-// stack (multiply together) rather than just picking the highest one.
+// Buffalo-style: Wild multipliers are a Free Spins-only mechanic. Every Wild
+// that lands during Free Spins randomly becomes a 2x or 3x multiplier; Wilds
+// in the base game never carry one. If a winning cluster contains multiple
+// Wilds, their multipliers stack (multiply together) rather than just
+// picking the highest one.
 const WILD_MULTIPLIER_WEIGHTS = [
-  { mult: 2, weight: 50 },
-  { mult: 3, weight: 30 },
-  { mult: 5, weight: 15 },
-  { mult: 10, weight: 5 },
+  { mult: 2, weight: 60 },
+  { mult: 3, weight: 40 },
 ];
 function rollWildMultiplier() {
   const total = WILD_MULTIPLIER_WEIGHTS.reduce((sum, w) => sum + w.weight, 0);
@@ -1992,6 +2095,14 @@ function weightedRandomSymbol(col = null) {
     let mult = modifiers.weightMultiplier[id] || 1;
     if (id === 'scatter' && isEdgeReel && modifiers.edgeReelScatterBonus) {
       mult *= (1 + modifiers.edgeReelScatterBonus);
+    }
+    if (id === 'scatter' && pendingCoinBoost) {
+      mult *= (1 + pendingCoinBoost);
+    }
+    // Buffalo-style: the dedicated Wild only ever lands on the middle
+    // three reels (columns 2, 3, 4) — never on reel 1 or reel 5.
+    if (id === 'wild' && isEdgeReel) {
+      mult = 0;
     }
     return [id, s.weight * mult];
   });
@@ -2011,9 +2122,28 @@ function generateGrid() {
     for (let col = 0; col < GRID_COLS; col++) {
       const i = idx(col, row);
       arr[i] = weightedRandomSymbol(col);
-      if (arr[i] === 'wild') wildMultipliers[i] = rollWildMultiplier();
+      // Wild multipliers only exist during Free Spins — base-game Wilds
+      // substitute for free, unless Wild Card grants one.
+      if (arr[i] === 'wild') {
+        if (inFreeSpins) wildMultipliers[i] = rollWildMultiplier();
+        else if (modifiers.baseGameWildMultChance && Math.random() < modifiers.baseGameWildMultChance) {
+          wildMultipliers[i] = 2;
+        }
+      }
     }
   }
+
+  if (forceWildNextSpin) {
+    forceWildNextSpin = false;
+    if (!arr.includes('wild')) {
+      const col = 1 + Math.floor(Math.random() * (GRID_COLS - 2));
+      const row = Math.floor(Math.random() * GRID_ROWS);
+      const i = idx(col, row);
+      arr[i] = 'wild';
+      if (inFreeSpins) wildMultipliers[i] = rollWildMultiplier();
+    }
+  }
+
   return arr;
 }
 
@@ -2026,13 +2156,21 @@ function getEffectiveMinCluster() {
 
 // Processed one symbol type at a time, highest-pay first, so a Wild
 // touching two different symbol groups joins whichever pays more instead
-// of bridging them into a single merged cluster. Once a tile is claimed by
-// a cluster, lower-paying types can no longer flood-fill through it.
+// of bridging them into a single merged cluster (no combining two symbol
+// types into one win — matches Buffalo's Jack+Wild+King rule). Once a
+// non-Wild tile is claimed by a cluster, lower-paying types can no longer
+// flood-fill through it.
+//
+// The dedicated zero-pay Wild itself is never claimed: Buffalo-style, a
+// single Wild can help complete more than one winning combination at once
+// (e.g. a Jack cluster AND a King cluster through the same Wild tile), so
+// it stays available for every symbol type's flood fill.
 function findClusters(gridState) {
   const wildSet = modifiers.wildSymbols || new Set();
   const minCluster = getEffectiveMinCluster();
   const clusters = []; // { symbol, tiles: [indices] }
   const claimed = new Array(gridState.length).fill(false);
+  const isFreeWild = id => wildSet.has(id) && SYMBOLS[id].pay === 0;
 
   // Every clusterable, actually-paying symbol present — this includes any
   // relic-granted wild symbol too (e.g. Devil under Devil's Deal), since
@@ -2042,6 +2180,7 @@ function findClusters(gridState) {
     .sort((a, b) => SYMBOLS[b].pay - SYMBOLS[a].pay);
 
   symbolTypes.forEach(symType => {
+    const partners = getMixedPartners(symType);
     const visited = new Array(gridState.length).fill(false);
     for (let row = 0; row < GRID_ROWS; row++) {
       for (let col = 0; col < GRID_COLS; col++) {
@@ -2050,8 +2189,9 @@ function findClusters(gridState) {
         if (gridState[i] !== symType) continue;
 
         // Flood fill from this seed: connects to more of this same symbol,
-        // or to a Wild — but never crosses into a tile another (earlier,
-        // higher-pay) type has already claimed.
+        // or to a Wild — but never crosses into a non-Wild tile another
+        // (earlier, higher-pay) type has already claimed. Wild tiles are
+        // never claimed, so they remain fair game for every symbol type.
         const stack = [[col, row]];
         const tiles = [];
         visited[i] = true;
@@ -2060,12 +2200,16 @@ function findClusters(gridState) {
           const ii = idx(c, r);
           tiles.push(ii);
           const neighbors = [[c+1,r],[c-1,r],[c,r+1],[c,r-1]];
+          if (modifiers.diagonalClusters) {
+            neighbors.push([c+1,r+1],[c-1,r-1],[c+1,r-1],[c-1,r+1]);
+          }
           for (const [nc, nr] of neighbors) {
             if (nc < 0 || nc >= GRID_COLS || nr < 0 || nr >= GRID_ROWS) continue;
             const ni = idx(nc, nr);
-            if (visited[ni] || claimed[ni]) continue;
             const nSym = gridState[ni];
-            if (nSym !== symType && !wildSet.has(nSym)) continue;
+            if (visited[ni]) continue;
+            if (claimed[ni] && !isFreeWild(nSym)) continue;
+            if (nSym !== symType && !partners.has(nSym) && !wildSet.has(nSym)) continue;
             visited[ni] = true;
             stack.push([nc, nr]);
           }
@@ -2073,7 +2217,9 @@ function findClusters(gridState) {
 
         if (tiles.length >= minCluster) {
           clusters.push({ symbol: symType, tiles });
-          tiles.forEach(t => claimed[t] = true);
+          tiles.forEach(t => {
+            if (!isFreeWild(gridState[t])) claimed[t] = true;
+          });
         }
       }
     }
@@ -2099,14 +2245,160 @@ function countScatters(gridState) {
   return gridState.reduce((count, s) => count + (s === 'scatter' ? 1 : 0), 0);
 }
 
+function tileCol(t) { return t % GRID_COLS; }
+function tileRow(t) { return Math.floor(t / GRID_COLS); }
+
+function clusterSpansColumns(tiles) {
+  return new Set(tiles.map(tileCol)).size;
+}
+
+function clusterTouchesBothEdges(tiles) {
+  let first = false, last = false;
+  tiles.forEach(t => {
+    const c = tileCol(t);
+    if (c === 0) first = true;
+    if (c === GRID_COLS - 1) last = true;
+  });
+  return first && last;
+}
+
+function clusterHasStraightRun(tiles, minRun) {
+  const set = new Set(tiles);
+  for (const t of tiles) {
+    const c = tileCol(t), r = tileRow(t);
+    let run = 1;
+    while (run < minRun && set.has(idx(c + run, r)) && c + run < GRID_COLS) run++;
+    if (run >= minRun) return true;
+    run = 1;
+    while (run < minRun && set.has(idx(c, r + run)) && r + run < GRID_ROWS) run++;
+    if (run >= minRun) return true;
+  }
+  return false;
+}
+
+function clusterHasBlock(tiles) {
+  const set = new Set(tiles);
+  for (const t of tiles) {
+    const c = tileCol(t), r = tileRow(t);
+    if (c + 1 >= GRID_COLS || r + 1 >= GRID_ROWS) continue;
+    if (set.has(idx(c + 1, r)) && set.has(idx(c, r + 1)) && set.has(idx(c + 1, r + 1))) return true;
+  }
+  return false;
+}
+
+function getMixedPartners(symType) {
+  const partners = new Set();
+  modifiers.mixedGroups.forEach(group => {
+    if (group.includes(symType)) group.forEach(s => partners.add(s));
+  });
+  return partners;
+}
+
+// ---------- Payout evaluation ----------
+// Stage order is fixed and shared by base spins and Free Spins:
+//   base per-tile pay -> flat adds -> percent adds -> multipliers -> wild multipliers
+// Percent effects stack additively with each other; multipliers stack multiplicatively.
+function computeClusterPayout(gridState, cluster, winTiles) {
+  const size = cluster.tiles.length;
+  const minCluster = getEffectiveMinCluster();
+  if (modifiers.allOrNothing && size <= minCluster) {
+    cluster.tiles.forEach(t => winTiles.add(t));
+    return 0;
+  }
+
+  const centerCol = Math.floor(GRID_COLS / 2);
+  const lastCol = GRID_COLS - 1;
+  const lastRow = GRID_ROWS - 1;
+  let flat = 0;
+
+  cluster.tiles.forEach(t => {
+    const c = tileCol(t), r = tileRow(t);
+    const isWild = gridState[t] === 'wild';
+    const rateSymbol = isWild ? cluster.symbol : gridState[t];
+    let perTile = SYMBOLS[rateSymbol].pay + (modifiers.payBonus[rateSymbol] || 0);
+    perTile *= (modifiers.symbolPayMultiplier[rateSymbol] || 1);
+    flat += perTile;
+    if (isWild) flat += modifiers.wildPayBonus;
+    if (modifiers.firstColumnPayBonus && c === 0) flat += modifiers.firstColumnPayBonus;
+    if (modifiers.centerColumnPayBonus && c === centerCol) flat += modifiers.centerColumnPayBonus;
+    if (modifiers.cornerPayBonus && (c === 0 || c === lastCol) && (r === 0 || r === lastRow)) {
+      flat += modifiers.cornerPayBonus;
+    }
+    winTiles.add(t);
+  });
+
+  if (modifiers.clusterSizeBonus && size >= modifiers.clusterSizeBonus.minSize) {
+    flat += modifiers.clusterSizeBonus.credits;
+  }
+  if (modifiers.blockBonus && clusterHasBlock(cluster.tiles)) {
+    flat += modifiers.blockBonus;
+  }
+
+  let percent = 0;
+  if (modifiers.spreadPercent && clusterSpansColumns(cluster.tiles) >= modifiers.spreadPercent.minCols) {
+    percent += modifiers.spreadPercent.percent;
+  }
+  if (modifiers.straightLinePercent && clusterHasStraightRun(cluster.tiles, modifiers.straightLinePercent.minRun)) {
+    percent += modifiers.straightLinePercent.percent;
+  }
+
+  let mult = 1;
+  if (modifiers.allOrNothing) mult *= modifiers.allOrNothing;
+  if (modifiers.acrossBoardMult && clusterTouchesBothEdges(cluster.tiles)) {
+    mult *= modifiers.acrossBoardMult;
+  }
+  const exact = modifiers.exactClusterMult;
+  if (exact && cluster.symbol === exact.symbol && (exact.atLeast ? size >= exact.size : size === exact.size)) {
+    mult *= exact.mult;
+  }
+
+  return flat * (1 + percent) * mult * getClusterWildMultiplier(gridState, cluster.tiles);
+}
+
+function evaluateSpin(gridState) {
+  const clusters = findClusters(gridState);
+  const winTiles = new Set();
+  let spinPayout = 0;
+
+  clusters.forEach(cluster => {
+    spinPayout += computeClusterPayout(gridState, cluster, winTiles);
+  });
+
+  const isWin = clusters.length > 0;
+  const scatterCount = countScatters(gridState);
+
+  spinPayout += modifiers.flatCredits + getRoundScalingCredits();
+  if (modifiers.nearMissCredits && scatterCount === SCATTER_TRIGGER_COUNT - 1) {
+    spinPayout += modifiers.nearMissCredits;
+  }
+  spinPayout = Math.round(spinPayout * (1 + modifiers.globalPayMultiplier));
+  spinPayout = Math.round(spinPayout * applyHotStreak(isWin));
+
+  return { clusters, winTiles, spinPayout, isWin, scatterCount };
+}
+
+// Near-miss and losing-streak relics both read the spin that just resolved,
+// then arm an effect that only the next generateGrid() call consumes.
+function updateRunState(isWin, scatterCount) {
+  lossStreak = isWin ? 0 : lossStreak + 1;
+  pendingCoinBoost = (modifiers.nearMissCoinBoost && scatterCount === SCATTER_TRIGGER_COUNT - 1)
+    ? modifiers.nearMissCoinBoost
+    : 0;
+  if (modifiers.onTiltThreshold && lossStreak >= modifiers.onTiltThreshold) {
+    forceWildNextSpin = true;
+    lossStreak = 0;
+  }
+}
+
 // ---------- Symbol rendering ----------
 function symbolImgTag(symbolId, tileIndex) {
   const s = SYMBOLS[symbolId];
   if (symbolId === 'wild') {
-    const mult = (tileIndex !== undefined && wildMultipliers[tileIndex])
-      ? wildMultipliers[tileIndex]
-      : rollWildMultiplier();
-    return `<div class="wild-tile"><span class="wild-emoji">${s.icon}</span><span class="wild-mult-badge">${mult}\u00d7</span></div>`;
+    // Multiplier badge is a Free Spins-only mechanic — a base-game Wild
+    // renders plain, with no multiplier.
+    const mult = (inFreeSpins && tileIndex !== undefined) ? wildMultipliers[tileIndex] : undefined;
+    const badgeHtml = mult ? `<span class="wild-mult-badge">${mult}\u00d7</span>` : '';
+    return `<div class="wild-tile"><span class="wild-emoji">${s.icon}</span>${badgeHtml}</div>`;
   }
   return `<img class="symbol-img" src="${s.icon}" alt="${s.label}" draggable="false">`;
 }
@@ -2652,7 +2944,7 @@ function renderPaytable() {
       : `<img class="icon" src="${s.icon}" alt="${s.label}">`;
     let note;
     if (id === 'wild') {
-      note = 'Substitutes for any symbol — carries its own random multiplier (2×–10×)';
+      note = 'Reels 2–4 only. Substitutes for any symbol, can complete more than one cluster at once. During Free Spins, carries a random 2×–3× multiplier (stacks if a cluster has multiple Wilds).';
     } else if (s.clusterable) {
       note = fmtCredits(s.pay) + ' credits × cluster size';
     } else {
@@ -2716,6 +3008,9 @@ function resetRun() {
   cardTierIndex = 0;
   cardXP = 0;
   winStreak = 0;
+  lossStreak = 0;
+  pendingCoinBoost = 0;
+  forceWildNextSpin = false;
   modifiers = computeModifiers();
   isSpinning = false;
   inFreeSpins = false;
@@ -3027,29 +3322,8 @@ function doSpin() {
   grid = generateGrid();
   spinsLeft -= 1;
 
-  const clusters = findClusters(grid);
-  const scatterCount = countScatters(grid);
-  const winTiles = new Set();
-  let spinPayout = 0;
-
-  clusters.forEach(cluster => {
-    const payPerTile = SYMBOLS[cluster.symbol].pay + (modifiers.payBonus[cluster.symbol] || 0);
-    let clusterPayout = 0;
-    cluster.tiles.forEach(t => {
-      clusterPayout += payPerTile;
-      if (modifiers.firstColumnPayBonus && (t % GRID_COLS) === 0) {
-        clusterPayout += modifiers.firstColumnPayBonus;
-      }
-      winTiles.add(t);
-    });
-    spinPayout += clusterPayout * getClusterWildMultiplier(grid, cluster.tiles);
-  });
-
-  const isWin = clusters.length > 0;
-
-  spinPayout += modifiers.flatCredits + getRoundScalingCredits();
-  spinPayout = Math.round(spinPayout * (1 + modifiers.globalPayMultiplier));
-  spinPayout = Math.round(spinPayout * applyHotStreak(isWin));
+  const { clusters, winTiles, spinPayout, isWin, scatterCount } = evaluateSpin(grid);
+  updateRunState(isWin, scatterCount);
   roundProgress += spinPayout;
   if (roundProgress >= quota) quotaClearedThisRound = true;
   gainCardXP(XP_PER_SPIN);
@@ -3224,29 +3498,10 @@ function runNextFreeSpin() {
   const isLikelyFinalSpin = freeSpinsRemaining === 0;
   const effectiveMultiplier = freeSpinMultiplier + (isLikelyFinalSpin ? (modifiers.finalSpinMultBonus || 0) : 0);
 
-  const clusters = findClusters(grid);
-  const scatterCount = countScatters(grid);
-  const winTiles = new Set();
-  let spinPayout = 0;
-
-  clusters.forEach(cluster => {
-    const payPerTile = SYMBOLS[cluster.symbol].pay + (modifiers.payBonus[cluster.symbol] || 0);
-    let clusterPayout = 0;
-    cluster.tiles.forEach(t => {
-      clusterPayout += payPerTile;
-      if (modifiers.firstColumnPayBonus && (t % GRID_COLS) === 0) {
-        clusterPayout += modifiers.firstColumnPayBonus;
-      }
-      winTiles.add(t);
-    });
-    spinPayout += clusterPayout * getClusterWildMultiplier(grid, cluster.tiles);
-  });
-  const isWin = clusters.length > 0;
-
-  spinPayout += modifiers.flatCredits + getRoundScalingCredits();
-  spinPayout = Math.round(spinPayout * (1 + modifiers.globalPayMultiplier));
-  spinPayout = Math.round(spinPayout * applyHotStreak(isWin));
-  spinPayout *= effectiveMultiplier;
+  const evaluated = evaluateSpin(grid);
+  const { clusters, winTiles, isWin, scatterCount } = evaluated;
+  updateRunState(isWin, scatterCount);
+  const spinPayout = Math.round(evaluated.spinPayout * effectiveMultiplier);
   gainCardXP(XP_PER_SPIN);
 
   const effectiveRetriggerCount = Math.max(2, FREE_SPIN_RETRIGGER_COUNT - (modifiers.retriggerThresholdReduction || 0));
