@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Big Spin! — v0.42-wild</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Arbutus+Slab&family=VT323&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Arbutus+Slab&family=Libre+Franklin:wght@400;500;600;700&family=VT323&display=swap" rel="stylesheet">
 <style>
   :root {
     --font-display: 'Arbutus Slab', serif;
-    --font-ui: 'Arbutus Slab', serif;
+    --font-ui: 'Libre Franklin', sans-serif;
     --font-led: 'VT323', monospace;
     --led-amber: #ffb020;
     --ink-soft: #5c4632;
@@ -743,6 +743,14 @@
   .shop-owned-section {
     margin-top: 4px;
     margin-bottom: 16px;
+    background: var(--paper-panel);
+    border: 3px solid var(--teal);
+    border-radius: 12px;
+    padding: 10px 12px 12px;
+  }
+
+  .shop-owned-section .shop-section-label {
+    color: var(--teal-dark);
   }
 
   .shop-owned-section .empty {
@@ -980,7 +988,7 @@
   /* Larger, scrollable, left-aligned variants for Shop / Player's Card /
      Menu — these can have more content than fits on screen at once, so
      they scroll internally while the game screen behind them stays fixed. */
-  .shop-modal-card, .card-modal-card, .menu-modal-card {
+  .card-modal-card, .menu-modal-card {
     text-align: left;
     max-width: 420px;
     width: 100%;
@@ -989,6 +997,39 @@
     overflow-y: auto;
     padding: 20px 18px;
     position: relative;
+  }
+
+  .shop-modal-card {
+    text-align: left;
+    max-width: 420px;
+    width: 100%;
+    max-height: 88vh;
+    max-height: 88dvh;
+    padding: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .shop-modal-sticky-top {
+    flex-shrink: 0;
+    padding: 20px 18px 12px;
+  }
+
+  .shop-modal-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0 18px;
+  }
+
+  .shop-modal-sticky-bottom {
+    flex-shrink: 0;
+    padding: 12px 18px 18px;
+    margin-top: 4px;
+    border-top: 2px dashed rgba(28,20,15,0.25);
+    background: var(--cream);
   }
 
   .modal-close-btn {
@@ -1393,11 +1434,12 @@
   .dev-relic-tier { text-transform: uppercase; font-weight: 600; }
 
   /* ---------- Type + palette cohesion ----------
-     Arbutus Slab ships a single weight, so synthetic bold muddies it —
-     weights are neutralised and hierarchy comes from size and colour.
+     Two faces, two jobs. Arbutus Slab leads in headings and button labels
+     and ships a single weight, so anything set in it stays at 400 —
+     synthetic bold smears its slab terminals. Libre Franklin carries the
+     body and small labels and keeps real weights for hierarchy.
      Red is reserved for painted UI furniture (buttons, the cabinet's own
      glow); type sits in the warm ink/gold range the artwork already uses. */
-  .modal-card,
   .modal-card h2,
   .menu-title,
   .shop-header .shop-title,
@@ -1405,32 +1447,46 @@
   .paytable h2,
   .shop-section-label,
   .offer-name,
-  .offer-tier,
-  .offer-desc,
   .offer-price,
-  .relic-chip,
-  .relic-chip .tier-tag,
+  .shop-divider,
+  .shop-bankroll-label,
+  .cashout-row.cashout-total,
+  .paytable-row .sym,
+  button.continue-btn,
+  button.modal-btn,
+  .menu-quick-btn,
+  .bigwin-tier {
+    font-weight: 400;
+    -webkit-text-stroke: 0;
+  }
+
+  .offer-desc,
   .rules-text,
   .modal-card p,
-  .paytable-row,
-  .paytable-row .sym,
-  .paytable-row .note,
-  .cashout-row,
-  .owned-relic-row,
   .owned-relic-desc,
-  .dev-relic-row,
+  .dev-relic-desc,
+  .paytable-row .note {
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 1.55;
+  }
+
+  .offer-tier,
+  .relic-chip .tier-tag,
+  .shop-header .shop-sub,
+  .card-panel .empty,
+  .dev-relic-tier,
   .socket-badge,
-  .shop-divider,
-  .card-xp-text,
+  .owned-relic-name,
+  .dev-relic-name {
+    font-weight: 600;
+  }
+
   button.buy-btn,
   button.sell-btn,
   button.reroll-btn,
-  button.continue-btn,
-  button.reset-btn,
-  button.modal-btn,
-  .menu-quick-btn {
-    font-weight: 400;
-    -webkit-text-stroke: 0;
+  button.reset-btn {
+    font-weight: 600;
   }
 
   .modal-card h2,
@@ -1742,37 +1798,43 @@
 <!-- Shop modal -->
 <div class="modal-overlay" id="shop-modal">
   <div class="modal-card shop-modal-card">
-    <div class="shop-header">
-      <div class="shop-title">🎟️ SHOP</div>
-      <div class="shop-sub" id="shop-sub"></div>
-    </div>
-
-    <div class="shop-bankroll-box">
-      <span class="shop-bankroll-label">💰 BANKROLL</span>
-      <span class="shop-bankroll-value" id="shop-bankroll-value">0</span>
-    </div>
-
-    <div class="shop-section-label">
-      <span>RELICS FOR SALE</span>
-      <button class="reroll-btn" id="reroll-btn">🎲 REROLL</button>
-    </div>
-    <div class="shop-offers" id="shop-offers"></div>
-
-    <div class="shop-owned-section" id="shop-owned-section">
-      <div class="shop-section-label">
-        <span>YOUR RELICS</span>
-        <span class="socket-badge" id="shop-socket-badge">0/1</span>
+    <div class="shop-modal-sticky-top">
+      <div class="shop-header">
+        <div class="shop-title">🎟️ SHOP</div>
+        <div class="shop-sub" id="shop-sub"></div>
       </div>
-      <div id="shop-owned-relics"></div>
+
+      <div class="shop-bankroll-box">
+        <span class="shop-bankroll-label">💰 BANKROLL</span>
+        <span class="shop-bankroll-value" id="shop-bankroll-value">0</span>
+      </div>
     </div>
 
-    <div class="shop-divider"><span>OR</span></div>
+    <div class="shop-modal-scroll" id="shop-modal-scroll">
+      <div class="shop-section-label">
+        <span>RELICS FOR SALE</span>
+        <button class="reroll-btn" id="reroll-btn">🎲 REROLL</button>
+      </div>
+      <div class="shop-offers" id="shop-offers"></div>
 
-    <div class="shop-section-label"><span>PLAYER'S CARD</span></div>
-    <div id="card-upgrade-offer"></div>
+      <div class="shop-owned-section" id="shop-owned-section">
+        <div class="shop-section-label">
+          <span>YOUR RELICS</span>
+          <span class="socket-badge" id="shop-socket-badge">0/1</span>
+        </div>
+        <div id="shop-owned-relics"></div>
+      </div>
 
-    <div class="shop-continue-row">
-      <button class="continue-btn" id="continue-btn">CONTINUE TO NEXT ROUND</button>
+      <div class="shop-divider"><span>OR</span></div>
+
+      <div class="shop-section-label"><span>PLAYER'S CARD</span></div>
+      <div id="card-upgrade-offer"></div>
+    </div>
+
+    <div class="shop-modal-sticky-bottom">
+      <div class="shop-continue-row">
+        <button class="continue-btn" id="continue-btn">CONTINUE TO NEXT ROUND</button>
+      </div>
     </div>
   </div>
 </div>
@@ -4065,8 +4127,14 @@ devModeToggleEl.addEventListener('change', e => {
   if (!e.target.checked) filterPanelEl.classList.remove('open');
   if (e.target.checked) renderDevRelicList();
 });
-cardOpenBtn.addEventListener('click', () => cardModalEl.classList.add('active'));
-cardCloseBtn.addEventListener('click', () => cardModalEl.classList.remove('active'));
+cardOpenBtn.addEventListener('click', () => {
+  menuModalEl.classList.remove('active');
+  cardModalEl.classList.add('active');
+});
+cardCloseBtn.addEventListener('click', () => {
+  cardModalEl.classList.remove('active');
+  menuModalEl.classList.add('active');
+});
 continueBtn.addEventListener('click', closeShopAndAdvance);
 rerollBtnEl.addEventListener('click', rerollShop);
 renderPaytable();
